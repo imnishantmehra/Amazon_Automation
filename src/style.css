@@ -1,0 +1,217 @@
+@font-face {
+    font-family: 'Montserrat SemiBold';
+    src: url('./fonts/Montserrat-SemiBold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat Bold';
+    src: url('./fonts/Montserrat-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat Regular';
+    src: url('./fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    font-family: 'Montserrat Regular', sans-serif;
+}
+
+.bg_main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    flex-direction: column;
+    min-width: 100vw;
+    text-align: center;
+    background-image: linear-gradient(to bottom, rgb(255 255 255 / 52%), rgb(0 0 0)), url(/image_bg.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.bg_main h2 {
+    font-size: 38px;
+    font-family: 'Montserrat Bold';
+    color: #ffffff;
+    margin: 0px 0 18px 0;
+}
+
+.smell {
+    background: linear-gradient(90deg, rgb(255 255 255 / 0%) 0%, rgb(255 255 255 / 0%) 35%, rgb(255 255 255 / 0%) 100%);
+    width: 100%;
+    border: 1px solid #ffffff80;
+    border-radius: 10px;
+    padding: 40px 40px 25px 40px;
+    max-width: 670px;
+    box-shadow: 0px 0px 14px #ffffff00;
+}
+
+.bg_main p {
+    color: #ffffff;
+    max-width: 727px;
+    margin: 0px auto 5px auto;
+    line-height: 26px;
+    opacity: 0.9;
+    overflow: hidden;
+}
+
+.bg_main label {
+    background: #043177;
+    color: #FFFFFF;
+    width: 100%;
+    display: inline-block;
+    line-height: 50px;
+    transition: 0.5s;
+    max-width: 300px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    text-transform: capitalize;
+    font-weight: 500;
+    font-family: 'Montserrat Regular';
+    letter-spacing: 0.5px;
+    padding: 0;
+    box-shadow: 0px 0px 7px #0000001f;
+}
+
+.bg_main button {
+    background: #043177;
+    color: #000000;
+    width: 100%;
+    display: inline-block;
+    line-height: 50px;
+    max-width: 300px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    text-transform: capitalize;
+    font-weight: 500;
+    padding: 0;
+    font-family: 'Montserrat Regular';
+    letter-spacing: 0.5px;
+    box-shadow: 0px 0px 7px #0000001f;
+    outline: none !important;
+    border: 1px solid #ffffff00;
+    margin: 15px;
+}
+
+.smell2 input {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 10px auto;
+    height: 38px;
+    padding: 5px 5px;
+    border: none;
+    font-size: 15px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 7px #00000024;
+    border: 1px solid #0000002e;
+    font-family: 'Montserrat Regular';
+}
+
+.smell2 {
+    margin-top: 10px;
+}
+
+.smell2 button {
+    max-width: 406px !important;
+}
+
+.bg_main button {
+    background: #043177;
+    color: #FFFFFF;
+    width: 100%;
+    display: inline-block;
+    line-height: 50px;
+    max-width: 300px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    text-transform: capitalize;
+    font-weight: 500;
+    padding: 0;
+    font-family: 'Montserrat Regular';
+    letter-spacing: 0.5px;
+    box-shadow: 0px 0px 7px #0000001f;
+    outline: none !important;
+    border: 1px solid #ffffff00;
+    margin: 15px;
+}
+
+.smell2 input:focus-visible {
+    outline: none;
+    background: #ededed;
+}
+
+.bg_main button:hover {
+    background: #0d47a1;
+    transition: 0.5s;
+}
+
+.bg_main button {
+    transition: 0.5s;
+}
+
+.bg_main label:hover {
+    /* background: red; */
+    background: #0d47a1;
+    transition: 0.5s;
+}
+
+.file-upload-div {
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    text-align: center;
+}
+
+p.drag-and-drop-line {
+    position: relative;
+}
+
+p.drag-and-drop-line:before {
+    position: absolute;
+    content: "";
+    width: calc(45% - 150px);
+    height: 1px;
+    background: rgb(255, 255, 255);
+    top: 14px;
+    right: 0;
+    margin-right: 150px;
+}
+
+p.drag-and-drop-line:after {
+    position: absolute;
+    content: "";
+    width: calc(45% - 150px);
+    height: 1px;
+    background: rgb(255, 255, 255);
+    top: 14px;
+    left: 0;
+    margin-left: 150px;
+}
+
+@media only screen and (max-width: 991px) {
+    .smell {
+        width: auto;
+        margin: 15px;
+        padding: 30px 30px 15px 30px;
+    }
+
+    .bg_main button {
+        margin: 10px 0;
+    }
+
+    .smell2 input {
+        width: -webkit-fill-available;
+    }
+
+}

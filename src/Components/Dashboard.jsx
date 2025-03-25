@@ -9,12 +9,15 @@ import Loader from "../LoaderComponent/Loader";
 import { RiDeleteBin7Line } from "react-icons/ri";
 import { BiSave } from "react-icons/bi";
 import { FiUpload } from "react-icons/fi";
+import { IoMdTime } from "react-icons/io";
+import { LiaCheckCircleSolid, LiaTimesCircleSolid } from "react-icons/lia";
+import { FaSyncAlt } from "react-icons/fa";
 
 const Dashboard = () => {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
-  const [inputFileUrl, setInputFileUrl] = useState(null);
-  const [outputFileUrl, setOutputFileUrl] = useState(null);
+  const [inputFileUrl, setInputFileUrl] = useState(false);
+  const [outputFileUrl, setOutputFileUrl] = useState(false);
   const [showCredentialsForm, setShowCredentialsForm] = useState(false);
   const [amazonCredentials, setAmazonCredentials] = useState({
     username: "",
@@ -28,11 +31,49 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("Credentials");
   const [activeCredential, setActiveCredential] = useState("Amazon");
   const [showForm, setShowForm] = useState(false);
+  const [tasks, setTasks] = useState([
+    {
+      time: "Mar 20, 05:05 PM",
+      status: "Success",
+      duration: "20s",
+      message: "Task completed successfully",
+    },
+    {
+      time: "Mar 20, 04:05 PM",
+      status: "Success",
+      duration: "34s",
+      message: "Task completed successfully",
+    },
+    {
+      time: "Mar 20, 03:05 PM",
+      status: "Failed",
+      duration: "36s",
+      message: "Task completed successfully",
+    },
+    {
+      time: "Mar 20, 02:05 PM",
+      status: "Success",
+      duration: "43s",
+      message: "Error: File processing error",
+    },
+    {
+      time: "Mar 20, 01:05 PM",
+      status: "Success",
+      duration: "20s",
+      message: "Error: Connection timeout",
+    },
+    {
+      time: "Mar 20, 12:05 PM",
+      status: "Failed",
+      duration: "24s",
+      message: "Task completed successfully",
+    },
+  ]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
       setProcessing(true);
-      setMessage("Running scheduled tasks...");
+      setMessage("Running scheduled tasks");
       try {
         const inputFileResponse = await api.get("/inputfile", {
           responseType: "blob",
@@ -43,7 +84,7 @@ const Dashboard = () => {
           return;
         }
 
-        setMessage("File retrieved successfully, checking email...");
+        setMessage("File retrieved successfully, checking email");
         await checkRequirements();
       } catch (error) {
         console.error("Error in scheduled tasks:", error);
@@ -55,23 +96,43 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  //   const getEmail = async() => {
-  // try{
-  //   const emailData = await api.get("/get_email");
+  const getEmail = async () => {
+    try {
+      const data = await api.get("/get_email");
 
-  //   if (
-  //     emailData.message == "No email stored" &&
-  //     emailData.status === "error"
-  //   )
-  // }catch(){
+      if (data.status !== "error" && data.message !== "No email stored") {
+        setEmail(data.email);
+      }
+    } catch (e) {
+      console.error("Error fetching email:", e);
+    }
+  };
+  const getAmazonCredentials = async () => {
+    try {
+      const data = await api.get("/get_amazon_credentials");
 
-  // }finally{
-  //   setProcessing(false)
-  // }
-  //   }
+      if (
+        data.status !== "error" &&
+        data.message !== "No Amazon credentials stored"
+      ) {
+        setAmazonCredentials({
+          username: data.username,
+          password: data.password,
+        });
+      }
+    } catch (e) {
+      console.error("Error fetching Amazon credentials:", e);
+    }
+  };
+
+  useEffect(() => {
+    getEmail();
+    getAmazonCredentials();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log("first", name, value);
     setAmazonCredentials((prev) => ({
       ...prev,
       [name]: value,
@@ -107,14 +168,14 @@ const Dashboard = () => {
     if (!file) return;
 
     setProcessing(true);
-    setMessage("Uploading file, please wait...");
+    setMessage("Uploading file, please wait");
 
     try {
       const formData = new FormData();
       formData.append("file", file);
 
       await api.post("/upload", formData);
-      setMessage("File saved, checking email...");
+      setMessage("File saved, checking email");
 
       await checkRequirements();
     } catch (error) {
@@ -134,12 +195,14 @@ const Dashboard = () => {
         emailData.message == "No email stored" &&
         emailData.status === "error"
       ) {
-        setMessage("No email found, please enter your email");
+        setMessage(
+          "No email found, please enter your email in credentails tab"
+        );
         setShowEmailForm(true);
         return;
       }
 
-      setMessage("Email found, checking amazon credentails...");
+      setMessage("Email found, checking amazon credentails");
 
       const credentailsData = await api.get("/get_amazon_credentials");
 
@@ -148,13 +211,13 @@ const Dashboard = () => {
         credentailsData.status === "error"
       ) {
         setMessage(
-          "Amazon credentials not found, Please enter both username and password."
+          "Amazon credentials not found, Please enter both username and password in credentails tab."
         );
         setShowCredentialsForm(true);
         return;
       }
 
-      setMessage("Credentials found, running scraping...");
+      setMessage("Credentials found, running scraping");
       await handleAutomationtask();
     } catch (error) {
       setMessage(`${error}`);
@@ -167,12 +230,12 @@ const Dashboard = () => {
     if (!email) return;
 
     setProcessing(true);
-    setMessage("Saving email...");
+    setMessage("Saving email");
     try {
       await api.post("/set_email", { email });
       setShowEmailForm(false);
-      setEmail("");
-      setMessage("Email saved! Checking amazon credentails...");
+      // setEmail("");
+      setMessage("Email saved! Checking amazon credentails");
 
       const data = await api.get("/get_amazon_credentials");
 
@@ -185,7 +248,7 @@ const Dashboard = () => {
         return;
       }
 
-      setMessage("Credentials found, running scraping...");
+      setMessage("Credentials found, running scraping");
 
       await handleAutomationtask();
     } catch (error) {
@@ -199,7 +262,7 @@ const Dashboard = () => {
     setProcessing(true);
     try {
       await streamAPIResponse("/scrape", setMessage);
-      setMessage("Scraping completed, fetching output file...");
+      setMessage("Scraping completed, fetching output file");
       setOutputFileUrl(null);
       setInputFileUrl(null);
 
@@ -208,7 +271,7 @@ const Dashboard = () => {
       });
       const outputFileUrl = convertBlobToURL(outputResponse);
       setOutputFileUrl(outputFileUrl);
-      setMessage("Output file is ready! automation started...");
+      setMessage("Output file is ready! automation started");
 
       const automationResponse = await retryAutomation(
         "/automation",
@@ -216,7 +279,7 @@ const Dashboard = () => {
         setOtpRequested,
         otpSubmitted
       );
-      setMessage("Fetching updated output file...");
+      setMessage("Fetching updated output file");
       const newOutputResponse = await api.get("/outputfile", {
         responseType: "blob",
       });
@@ -241,17 +304,19 @@ const Dashboard = () => {
   };
 
   const handleSetCredentials = async () => {
+    console.log("amazonCredentials.username", amazonCredentials.username);
+    console.log("amazonCredentials.password", amazonCredentials.password);
     if (!amazonCredentials.username || !amazonCredentials.password) return;
 
     setProcessing(true);
-    setMessage("Saving credentials...");
+    setMessage("Saving credentials");
     try {
       await api.post("/set_amazon_credentials", {
         username: amazonCredentials.username,
         password: amazonCredentials.password,
       });
-      setMessage("Credentials saved! Running scraping...");
-      setAmazonCredentials({ username: "", password: "" });
+      setMessage("Credentials saved! Running scraping");
+      // setAmazonCredentials({ username: "", password: "" });
       setShowCredentialsForm(false);
 
       await handleAutomationtask();
@@ -264,10 +329,11 @@ const Dashboard = () => {
 
   const handleClearCredentials = async () => {
     setProcessing(true);
-    setMessage("Clearing credentials...");
+    setMessage("Clearing credentials");
     try {
       await api.get("/clear_amazon_credentials");
       setMessage("Amazon credentials cleared successfully!");
+      setAmazonCredentials({ username: "", password: "" });
     } catch (error) {
       setMessage(`Error: ${error}`);
     } finally {
@@ -278,7 +344,7 @@ const Dashboard = () => {
   const handleOtpSubmit = async () => {
     if (!otp) return;
 
-    setMessage("Submitting OTP, Please wait...");
+    setMessage("Submitting OTP, Please wait");
 
     try {
       await api.post("/submit_otp", { otp });
@@ -294,10 +360,11 @@ const Dashboard = () => {
 
   const handleClearEmail = async () => {
     setProcessing(true);
-    setMessage("Clearing emails...");
+    setMessage("Clearing emails");
     try {
       await api.get("/clear_email");
       setMessage("Email cleared successfully!");
+      setEmail("");
     } catch (error) {
       setMessage(`Error clearing email: ${error}`);
     } finally {
@@ -357,17 +424,28 @@ const Dashboard = () => {
             <div className="flex justify-end gap-4 mt-4">
               <button
                 className=" border rounded-lg bg-white text-black px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowForm(true)}
+                onClick={() => setShowForm(!showForm)}
               >
                 View Credentials
               </button>
-              <button
-                className="flex items-center gap-2 border text-black px-4 py-2 rounded-md hover:bg-gray-100"
-                onClick={() => setShowForm(false)}
-              >
-                <RiDeleteBin7Line className="text-lg" />
-                Clear
-              </button>
+              {outputFileUrl && (
+                <a
+                  href={outputFileUrl}
+                  download="output.xlsx"
+                  className="border rounded-lg bg-white text-black px-4 py-2 hover:bg-gray-100"
+                >
+                  Download Output File
+                </a>
+              )}
+              {inputFileUrl && (
+                <a
+                  href={inputFileUrl}
+                  download="input.xlsx"
+                  className="border rounded-lg bg-white text-black px-4 py-2 hover:bg-gray-100"
+                >
+                  Download Input File
+                </a>
+              )}
             </div>
 
             {/* Credentials Form */}
@@ -395,14 +473,25 @@ const Dashboard = () => {
                   onChange={handleChange}
                   className="w-full p-2 mb-2 border rounded"
                 />
-                <button
-                  className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                  onClick={handleSetCredentials}
-                  disabled={processing}
-                >
-                  <BiSave size={20} />
-                  Save Changes
-                </button>
+                <div className="flex gap-2">
+                  {showCredentialsForm && (
+                    <button
+                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                      onClick={handleSetCredentials}
+                      disabled={processing}
+                    >
+                      <BiSave size={20} />
+                      Save Changes
+                    </button>
+                  )}
+                  <button
+                    onClick={handleClearCredentials}
+                    disabled={processing}
+                    className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                  >
+                    Clear Amazon Credentials
+                  </button>
+                </div>
               </div>
             )}
 
@@ -418,14 +507,25 @@ const Dashboard = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-2 mb-2 border rounded"
                 />
-                <button
-                  className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                  onClick={handleSetEmail}
-                  disabled={processing}
-                >
-                  <BiSave size={20} />
-                  Save Changes
-                </button>
+                <div className="flex gap-2">
+                  {showEmailForm && (
+                    <button
+                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                      onClick={handleSetEmail}
+                      disabled={processing}
+                    >
+                      <BiSave size={20} />
+                      Save Changes
+                    </button>
+                  )}
+                  <button
+                    onClick={handleClearEmail}
+                    disabled={processing}
+                    className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                  >
+                    Clear Email
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -459,18 +559,103 @@ const Dashboard = () => {
                 Only Excel files (.xls, .xlsx) are supported
               </p>
             </label>
-            <div>
+            <div className="flex flex-row items-center justify-center space-x-2">
+              {/* {processing && <Loader />} */}
               {message && (
-                <p className="text-sm mt-2 text-gray-700">{message}</p>
+                <p className="text-sm mt-3 text-gray-700 break-all whitespace-normal overflow-hidden">
+                  {message}
+                </p>
               )}
-              {processing && <Loader />}
+            </div>
+            {otpRequested && (
+              <div className="flex items-center justify-center space-x-2 mt-5">
+                <div className="">
+                  <input
+                    type="text"
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full p-2 mb-2 border rounded"
+                  />
+                  <button
+                    onClick={handleOtpSubmit}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+                  >
+                    Submit OTP
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "Task Manager" && (
+          <div className=" mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold">Task Manager</h2>
+            <p className="text-gray-500">View hourly task execution reports</p>
+
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 flex items-center gap-1">
+                  <IoMdTime /> Runs hourly
+                </span>
+                <span className="bg-green-100 text-green-700 px-2 py-1 text-sm rounded-full flex items-center gap-1">
+                  <LiaCheckCircleSolid /> Success
+                </span>
+                <span className="bg-red-100 text-red-700 px-2 py-1 text-sm rounded-full flex items-center gap-1">
+                  <LiaTimesCircleSolid /> Failed
+                </span>
+              </div>
+              {/* <button className="flex items-center bg-gray-100 px-4 py-2 text-gray-700 rounded-lg shadow hover:bg-gray-200">
+                <FaSyncAlt className="mr-2" /> Refresh
+              </button> */}
+            </div>
+            {/* <p className="text-gray-500 text-right mt-4">
+              Next run: 5:30:00 PM
+            </p> */}
+
+            <div className="mt-4">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="text-left text-gray-600 bg-gray-100">
+                    <th className="p-3">Time</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Duration</th>
+                    <th className="p-3">Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tasks.map((task, index) => (
+                    <tr key={index} className="border-b text-gray-700">
+                      <td className="p-3">{task.time}</td>
+
+                      <td className="p-3">
+                        {task.status === "Success" ? (
+                          <span className="flex items-center w-24 gap-1 px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700">
+                            <LiaCheckCircleSolid className="text-green-600" />
+                            {task.status}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-700 w-24">
+                            <LiaTimesCircleSolid className="text-red-600" />
+                            {task.status}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-3">{task.duration}</td>
+                      <td className="p-3">{task.message}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
       </div>
 
       {/* old code */}
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white/50 to-gray-900 p-4 dark:bg-gray-700">
+      {/* <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white/50 to-gray-900 p-4 dark:bg-gray-700">
         <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
           Amazon Automation Dashboard
         </h2>
@@ -615,7 +800,7 @@ const Dashboard = () => {
             </button>
           </div>
         )}
-      </div>
+      </div> */}
     </>
   );
 };

@@ -69,7 +69,7 @@ const Dashboard = () => {
       message: "Task completed successfully",
     },
   ]);
-
+  
   useEffect(() => {
     const interval = setInterval(async () => {
       setProcessing(true);
@@ -83,8 +83,8 @@ const Dashboard = () => {
           setMessage("Failed to retrieve file, scheduled task stopped");
           return;
         }
-
         setMessage("File retrieved successfully, checking email");
+        localStorage.setItem("amazonCredentials", JSON.stringify(true));
         await checkRequirements();
       } catch (error) {
         console.error("Error in scheduled tasks:", error);
@@ -171,6 +171,7 @@ const Dashboard = () => {
     setMessage("Uploading file, please wait");
 
     try {
+      localStorage.setItem("amazonCredentials", JSON.stringify(true));
       const formData = new FormData();
       formData.append("file", file);
 
@@ -239,8 +240,7 @@ const Dashboard = () => {
 
       const data = await api.get("/get_amazon_credentials");
 
-      if (
-        data.message === "No Amazon credentials stored" &&
+      if ( data.message === "No Amazon credentials stored" &&
         data.status === "error"
       ) {
         setMessage("Amazon credentials not found, Please enter them below.");
@@ -304,8 +304,7 @@ const Dashboard = () => {
   };
 
   const handleSetCredentials = async () => {
-    console.log("amazonCredentials.username", amazonCredentials.username);
-    console.log("amazonCredentials.password", amazonCredentials.password);
+ 
     if (!amazonCredentials.username || !amazonCredentials.password) return;
 
     setProcessing(true);
@@ -318,8 +317,13 @@ const Dashboard = () => {
       setMessage("Credentials saved! Running scraping");
       // setAmazonCredentials({ username: "", password: "" });
       setShowCredentialsForm(false);
-
-      await handleAutomationtask();
+      const storedCredentials = localStorage.getItem("amazonCredentials");
+      // console.log(storedCredentials,"storedCredentials")
+      if (storedCredentials) {
+        await handleAutomationtask();
+      }else{
+        console.log("No stored credentials found.");
+      }
     } catch (error) {
       setMessage(`Error: ${error}`);
     } finally {
@@ -330,6 +334,7 @@ const Dashboard = () => {
   const handleClearCredentials = async () => {
     setProcessing(true);
     setMessage("Clearing credentials");
+    localStorage.setItem("amazonCredentials", JSON.stringify(false));
     try {
       await api.get("/clear_amazon_credentials");
       setMessage("Amazon credentials cleared successfully!");
@@ -474,7 +479,15 @@ const Dashboard = () => {
                   className="w-full p-2 mb-2 border rounded"
                 />
                 <div className="flex gap-2">
-                  {showCredentialsForm && (
+                <button
+                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                      onClick={handleSetCredentials}
+                      disabled={processing}
+                    >
+                      <BiSave size={20} />
+                      Save Changes
+                    </button>
+                  {/* {showCredentialsForm && (
                     <button
                       className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
                       onClick={handleSetCredentials}
@@ -483,7 +496,7 @@ const Dashboard = () => {
                       <BiSave size={20} />
                       Save Changes
                     </button>
-                  )}
+                  )} */}
                   <button
                     onClick={handleClearCredentials}
                     disabled={processing}
@@ -508,7 +521,15 @@ const Dashboard = () => {
                   className="w-full p-2 mb-2 border rounded"
                 />
                 <div className="flex gap-2">
-                  {showEmailForm && (
+                <button
+                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                      onClick={handleSetEmail}
+                      disabled={processing}
+                    >
+                      <BiSave size={20} />
+                      Save Changes
+                    </button>
+                  {/* {showEmailForm && (
                     <button
                       className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
                       onClick={handleSetEmail}
@@ -517,7 +538,7 @@ const Dashboard = () => {
                       <BiSave size={20} />
                       Save Changes
                     </button>
-                  )}
+                  )} */}
                   <button
                     onClick={handleClearEmail}
                     disabled={processing}

@@ -83,31 +83,31 @@ const Dashboard = () => {
   //   fetchlogs();
   // }, []);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      setProcessing(true);
-      setMessage("Running scheduled tasks");
-      try {
-        const inputFileResponse = await api.get("/inputfile", {
-          responseType: "blob",
-        });
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     setProcessing(true);
+  //     setMessage("Running scheduled tasks");
+  //     try {
+  //       const inputFileResponse = await api.get("/inputfile", {
+  //         responseType: "blob",
+  //       });
 
-        if (inputFileResponse.status !== 200) {
-          setMessage("Failed to retrieve file, scheduled task stopped");
-          return;
-        }
-        setMessage("File retrieved successfully, checking email");
-        localStorage.setItem("amazonCredentials", JSON.stringify(true));
-        await checkRequirements();
-      } catch (error) {
-        console.error("Error in scheduled tasks:", error);
-      } finally {
-        setProcessing(false);
-      }
-    }, 60 * 60 * 1000);
+  //       if (inputFileResponse.status !== 200) {
+  //         setMessage("Failed to retrieve file, scheduled task stopped");
+  //         return;
+  //       }
+  //       setMessage("File retrieved successfully, checking email");
+  //       localStorage.setItem("amazonCredentials", JSON.stringify(true));
+  //       await checkRequirements();
+  //     } catch (error) {
+  //       console.error("Error in scheduled tasks:", error);
+  //     } finally {
+  //       setProcessing(false);
+  //     }
+  //   }, 60 * 60 * 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const getEmail = async () => {
     try {
@@ -397,10 +397,11 @@ const Dashboard = () => {
 
     setProcessing(true);
     try {
-      await api.post("/confirm_checkout", {
+      const checkoutResponse = await api.post("/confirm_checkout", {
         total_paid: checkoutAmount,
       });
-      setMessage("Checkout completed! Thank you");
+      console.log("checkoutResponse", checkoutResponse);
+      setMessage(checkoutResponse.message);
       setShowCheckout(false);
     } catch (error) {
       setMessage(`Error: ${error}`);

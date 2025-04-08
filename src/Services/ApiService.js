@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-    "https://e935-2405-201-3009-d88a-4daa-b63a-f858-5895.ngrok-free.app/";
+    "https://0791-2405-201-3009-d88a-370c-5d39-73c2-71eb.ngrok-free.app";
 
 const axiosConfigForFetch = {
     headers: {
@@ -112,7 +112,6 @@ export const retryAutomation = async (url, setMessage, setOtpRequested, otpSubmi
             attempts++;
 
             if (error === "OTP submission timeout. Please re-initiate the process.") {
-                console.log("nsted Error if");
                 return { "status": false, "message": "OTP submission timeout. Please re-initiate the process." }
             }
 

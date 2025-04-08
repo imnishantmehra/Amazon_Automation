@@ -5,20 +5,16 @@ import {
   retryAutomation,
 } from "../Services/ApiService";
 import "../style.css";
-import Loader from "../LoaderComponent/Loader";
-import { RiDeleteBin7Line } from "react-icons/ri";
 import { BiSave } from "react-icons/bi";
 import { FiUpload } from "react-icons/fi";
 import { IoMdTime } from "react-icons/io";
 import { LiaCheckCircleSolid, LiaTimesCircleSolid } from "react-icons/lia";
-import { FaSyncAlt } from "react-icons/fa";
 
 const Dashboard = () => {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const [inputFileUrl, setInputFileUrl] = useState(false);
   const [outputFileUrl, setOutputFileUrl] = useState(false);
-  const [showCredentialsForm, setShowCredentialsForm] = useState(false);
   const [amazonCredentials, setAmazonCredentials] = useState({
     username: "",
     password: "",
@@ -27,10 +23,11 @@ const Dashboard = () => {
   const [otpRequested, setOtpRequested] = useState(false);
   const otpSubmitted = useRef(false);
   const [email, setEmail] = useState("");
-  const [showEmailForm, setShowEmailForm] = useState(false);
   const [activeTab, setActiveTab] = useState("Credentials");
   const [activeCredential, setActiveCredential] = useState("Amazon");
   const [showForm, setShowForm] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutAmount, setCheckoutAmount] = useState("");
   const [tasks, setTasks] = useState([
     {
       time: "Mar 20, 05:05 PM",
@@ -69,7 +66,23 @@ const Dashboard = () => {
       message: "Task completed successfully",
     },
   ]);
-  
+
+  // const [tasks, setTasks] = useState([]);
+
+  // useEffect(() => {
+  //   const fetchlogs = async () => {
+  //     try {
+  //       const response = await api.get("/logs");
+  // console.log(response,"response")
+
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
+
+  //   fetchlogs();
+  // }, []);
+
   useEffect(() => {
     const interval = setInterval(async () => {
       setProcessing(true);
@@ -199,7 +212,6 @@ const Dashboard = () => {
         setMessage(
           "No email found, please enter your email in credentails tab"
         );
-        setShowEmailForm(true);
         return;
       }
 
@@ -214,7 +226,6 @@ const Dashboard = () => {
         setMessage(
           "Amazon credentials not found, Please enter both username and password in credentails tab."
         );
-        setShowCredentialsForm(true);
         return;
       }
 
@@ -234,17 +245,16 @@ const Dashboard = () => {
     setMessage("Saving email");
     try {
       await api.post("/set_email", { email });
-      setShowEmailForm(false);
       // setEmail("");
       setMessage("Email saved! Checking amazon credentails");
 
       const data = await api.get("/get_amazon_credentials");
 
-      if ( data.message === "No Amazon credentials stored" &&
+      if (
+        data.message === "No Amazon credentials stored" &&
         data.status === "error"
       ) {
         setMessage("Amazon credentials not found, Please enter them below.");
-        setShowCredentialsForm(true);
         return;
       }
 
@@ -285,7 +295,7 @@ const Dashboard = () => {
       });
       const newOutputFileUrl = convertBlobToURL(newOutputResponse);
       setOutputFileUrl(newOutputFileUrl);
-      setMessage("Fetched output file, fetching input file!");
+      setMessage("Fetched output file, fetching isetShowCheckOutnput file!");
 
       const inputFileResponse = await api.get("/inputfile", {
         responseType: "blob",
@@ -296,6 +306,10 @@ const Dashboard = () => {
       setMessage(
         automationResponse.message || "Process completed successfully"
       );
+
+      if (automationResponse.status) {
+        setShowCheckout(true);
+      }
     } catch (error) {
       setMessage(`Error: ${error}`);
     } finally {
@@ -304,7 +318,6 @@ const Dashboard = () => {
   };
 
   const handleSetCredentials = async () => {
- 
     if (!amazonCredentials.username || !amazonCredentials.password) return;
 
     setProcessing(true);
@@ -316,12 +329,11 @@ const Dashboard = () => {
       });
       setMessage("Credentials saved! Running scraping");
       // setAmazonCredentials({ username: "", password: "" });
-      setShowCredentialsForm(false);
       const storedCredentials = localStorage.getItem("amazonCredentials");
       // console.log(storedCredentials,"storedCredentials")
       if (storedCredentials) {
         await handleAutomationtask();
-      }else{
+      } else {
         console.log("No stored credentials found.");
       }
     } catch (error) {
@@ -372,6 +384,26 @@ const Dashboard = () => {
       setEmail("");
     } catch (error) {
       setMessage(`Error clearing email: ${error}`);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCheckoutAmount = async () => {
+    if (!checkoutAmount) {
+      setMessage("Please enter checkout amount");
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      await api.post("/confirm_checkout", {
+        total_paid: checkoutAmount,
+      });
+      setMessage("Checkout completed! Thank you");
+      setShowCheckout(false);
+    } catch (error) {
+      setMessage(`Error: ${error}`);
     } finally {
       setProcessing(false);
     }
@@ -479,14 +511,14 @@ const Dashboard = () => {
                   className="w-full p-2 mb-2 border rounded"
                 />
                 <div className="flex gap-2">
-                <button
-                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                      onClick={handleSetCredentials}
-                      disabled={processing}
-                    >
-                      <BiSave size={20} />
-                      Save Changes
-                    </button>
+                  <button
+                    className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                    onClick={handleSetCredentials}
+                    disabled={processing}
+                  >
+                    <BiSave size={20} />
+                    Save Changes
+                  </button>
                   {/* {showCredentialsForm && (
                     <button
                       className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
@@ -521,14 +553,14 @@ const Dashboard = () => {
                   className="w-full p-2 mb-2 border rounded"
                 />
                 <div className="flex gap-2">
-                <button
-                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                      onClick={handleSetEmail}
-                      disabled={processing}
-                    >
-                      <BiSave size={20} />
-                      Save Changes
-                    </button>
+                  <button
+                    className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
+                    onClick={handleSetEmail}
+                    disabled={processing}
+                  >
+                    <BiSave size={20} />
+                    Save Changes
+                  </button>
                   {/* {showEmailForm && (
                     <button
                       className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
@@ -590,7 +622,7 @@ const Dashboard = () => {
             </div>
             {otpRequested && (
               <div className="flex items-center justify-center space-x-2 mt-5">
-                <div className="">
+                <div>
                   <input
                     type="text"
                     placeholder="Enter OTP"
@@ -603,6 +635,33 @@ const Dashboard = () => {
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
                   >
                     Submit OTP
+                  </button>
+                </div>
+              </div>
+            )}
+            {showCheckout && (
+              <div className="flex items-center justify-center space-x-2 mt-5">
+                <div>
+                  <a
+                    href="https://www.amazon.com"
+                    className="flex items-center justify-center text-black w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mb-4"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Proceed to Checkout
+                  </a>
+                  <input
+                    type="text"
+                    placeholder="Enter the checkout amount"
+                    value={checkoutAmount}
+                    onChange={(e) => setCheckoutAmount(e.target.value)}
+                    className="w-full p-2 mb-2 border rounded"
+                  />
+                  <button
+                    onClick={handleCheckoutAmount}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+                  >
+                    Submit Amount
                   </button>
                 </div>
               </div>

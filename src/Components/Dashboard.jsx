@@ -48,24 +48,6 @@ const Dashboard = () => {
       duration: "36s",
       message: "Task completed successfully",
     },
-    {
-      time: "Mar 20, 02:05 PM",
-      status: "Success",
-      duration: "43s",
-      message: "Error: File processing error",
-    },
-    {
-      time: "Mar 20, 01:05 PM",
-      status: "Success",
-      duration: "20s",
-      message: "Error: Connection timeout",
-    },
-    {
-      time: "Mar 20, 12:05 PM",
-      status: "Failed",
-      duration: "24s",
-      message: "Task completed successfully",
-    },
   ]);
 
   useEffect(() => {
@@ -316,7 +298,9 @@ const Dashboard = () => {
       const checkoutResponse = await api.post("/confirm_checkout", {
         total_paid: checkoutAmount,
       });
-      setMessage(checkoutResponse.message);
+      setMessage(
+        `${checkoutResponse.message} with the odoo order id: ${checkoutResponse.odoo_order_id}`
+      );
       setShowCheckout(false);
     } catch (error) {
       setMessage(`Error: ${error}`);
@@ -479,7 +463,7 @@ const Dashboard = () => {
               <div className="flex flex-row items-center justify-center space-x-2 border-2 rounded-lg mt-3 p-2 bg-gray-50">
                 {/* {processing && <Loader />} */}
                 <p
-                  className={`text-base text-gray-800 break-words whitespace-normal overflow-hidden leading-relaxed text-justify tracking-wide custom-font-style`}
+                  className={`text-base text-gray-800 break-words whitespace-normal overflow-hidden leading-relaxed text-justify custom-font-style`}
                 >
                   {message}
                 </p>
@@ -487,7 +471,7 @@ const Dashboard = () => {
             )}
             {otpRequested && (
               <div className="flex items-center justify-center space-x-2 mt-5">
-                <div>
+                <div className="flex flex-col items-center justify-center">
                   <input
                     type="text"
                     placeholder="Enter OTP"
@@ -497,7 +481,7 @@ const Dashboard = () => {
                   />
                   <button
                     onClick={handleOtpSubmit}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+                    className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
                   >
                     Submit OTP
                   </button>
@@ -506,28 +490,30 @@ const Dashboard = () => {
             )}
             {showCheckout && (
               <div className="flex items-center justify-center space-x-2 mt-5">
-                <div>
+                <div className="flex flex-col items-center justify-center">
                   <a
                     href="https://www.amazon.com"
-                    className="flex items-center justify-center text-black w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mb-4"
+                    className="my-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     Proceed to Checkout
                   </a>
-                  <input
-                    type="text"
-                    placeholder="Enter the checkout amount"
-                    value={checkoutAmount}
-                    onChange={(e) => setCheckoutAmount(e.target.value)}
-                    className="w-full p-2 mb-2 border rounded"
-                  />
-                  <button
-                    onClick={handleCheckoutAmount}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-                  >
-                    Submit Amount
-                  </button>
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <input
+                      type="text"
+                      placeholder="Enter the checkout amount"
+                      value={checkoutAmount}
+                      onChange={(e) => setCheckoutAmount(e.target.value)}
+                      className="w-full p-2 mb-2 border rounded"
+                    />
+                    <button
+                      onClick={handleCheckoutAmount}
+                      className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
+                    >
+                      Submit Amount
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

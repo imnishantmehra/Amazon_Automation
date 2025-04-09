@@ -488,7 +488,7 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-            {!showCheckout && (
+            {showCheckout && (
               <div className="flex items-center justify-center space-x-2 mt-5">
                 <div className="flex flex-col items-center justify-center">
                   <a

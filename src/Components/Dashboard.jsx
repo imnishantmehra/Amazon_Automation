@@ -13,21 +13,22 @@ import { LiaCheckCircleSolid, LiaTimesCircleSolid } from "react-icons/lia";
 const Dashboard = () => {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
+  const [credentialMessages, setCredentialMessages] = useState("");
   const [inputFileUrl, setInputFileUrl] = useState(false);
   const [outputFileUrl, setOutputFileUrl] = useState(false);
   const [amazonCredentials, setAmazonCredentials] = useState({
     username: "",
     password: "",
+    email: "",
   });
   const [otp, setOtp] = useState("");
   const [otpRequested, setOtpRequested] = useState(false);
-  const otpSubmitted = useRef(false);
-  const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState("Credentials");
-  const [activeCredential, setActiveCredential] = useState("Amazon");
   const [showForm, setShowForm] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutAmount, setCheckoutAmount] = useState("");
+  const otpSubmitted = useRef(false);
+  const fileInputRef = useRef(null);
   const [tasks, setTasks] = useState([
     {
       time: "Mar 20, 05:05 PM",
@@ -67,70 +68,43 @@ const Dashboard = () => {
     },
   ]);
 
-  // const [tasks, setTasks] = useState([]);
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      setProcessing(true);
+      setMessage("Running scheduled tasks");
+      try {
+        const inputFileResponse = await api.get("/inputfile", {
+          responseType: "blob",
+        });
 
-  // useEffect(() => {
-  //   const fetchlogs = async () => {
-  //     try {
-  //       const response = await api.get("/logs");
-  // console.log(response,"response")
-
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-
-  //   fetchlogs();
-  // }, []);
-
-  // useEffect(() => {
-  //   const interval = setInterval(async () => {
-  //     setProcessing(true);
-  //     setMessage("Running scheduled tasks");
-  //     try {
-  //       const inputFileResponse = await api.get("/inputfile", {
-  //         responseType: "blob",
-  //       });
-
-  //       if (inputFileResponse.status !== 200) {
-  //         setMessage("Failed to retrieve file, scheduled task stopped");
-  //         return;
-  //       }
-  //       setMessage("File retrieved successfully, checking email");
-  //       localStorage.setItem("amazonCredentials", JSON.stringify(true));
-  //       await checkRequirements();
-  //     } catch (error) {
-  //       console.error("Error in scheduled tasks:", error);
-  //     } finally {
-  //       setProcessing(false);
-  //     }
-  //   }, 60 * 60 * 1000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
-
-  const getEmail = async () => {
-    try {
-      const data = await api.get("/get_email");
-
-      if (data.status !== "error" && data.message !== "No email stored") {
-        setEmail(data.email);
+        if (inputFileResponse.status !== 200) {
+          setMessage("Failed to retrieve file, scheduled task stopped");
+          return;
+        }
+        setMessage("File retrieved successfully, checking credentials");
+        const requirement = await checkRequirements();
+        if (requirement) {
+          await handleAutomationtask();
+        }
+      } catch (error) {
+        console.error("Error in scheduled tasks:", error);
+      } finally {
+        setProcessing(false);
       }
-    } catch (e) {
-      console.error("Error fetching email:", e);
-    }
-  };
-  const getAmazonCredentials = async () => {
-    try {
-      const data = await api.get("/get_amazon_credentials");
+    }, 604800000);
 
-      if (
-        data.status !== "error" &&
-        data.message !== "No Amazon credentials stored"
-      ) {
+    return () => clearInterval(interval);
+  }, []);
+
+  const getCredentials = async () => {
+    try {
+      const data = await api.get("/get_credentials");
+
+      if (data.message !== "No credentials stored" && data.status !== "error") {
         setAmazonCredentials({
-          username: data.username,
-          password: data.password,
+          username: data.amazon.username,
+          password: data.amazon.password,
+          email: data.email,
         });
       }
     } catch (e) {
@@ -139,13 +113,11 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    getEmail();
-    getAmazonCredentials();
+    getCredentials();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log("first", name, value);
     setAmazonCredentials((prev) => ({
       ...prev,
       [name]: value,
@@ -181,17 +153,21 @@ const Dashboard = () => {
     if (!file) return;
 
     setProcessing(true);
-    setMessage("Uploading file, please wait");
-
     try {
-      localStorage.setItem("amazonCredentials", JSON.stringify(true));
-      const formData = new FormData();
-      formData.append("file", file);
+      const requirement = await checkRequirements();
+      if (requirement) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      await api.post("/upload", formData);
-      setMessage("File saved, checking email");
+        await api.post("/upload", formData);
+        setMessage("Uploading file, please wait...");
 
-      await checkRequirements();
+        await handleAutomationtask();
+      } else {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
     } catch (error) {
       setMessage(`Error: ${error}`);
     } finally {
@@ -201,76 +177,31 @@ const Dashboard = () => {
 
   const checkRequirements = async () => {
     setProcessing(true);
+    setMessage("Checking credentials, please wait...");
 
     try {
-      const emailData = await api.get("/get_email");
+      const credentialsData = await api.get("/get_credentials");
 
       if (
-        emailData.message == "No email stored" &&
-        emailData.status === "error"
+        credentialsData.message === "No credentials stored" &&
+        credentialsData.status === "error"
       ) {
-        setMessage(
-          "No email found, please enter your email in credentails tab"
-        );
-        return;
+        setMessage("Credentials not found, please enter your credentials");
+        return false;
       }
 
-      setMessage("Email found, checking amazon credentails");
-
-      const credentailsData = await api.get("/get_amazon_credentials");
-
-      if (
-        credentailsData.message === "No Amazon credentials stored" &&
-        credentailsData.status === "error"
-      ) {
-        setMessage(
-          "Amazon credentials not found, Please enter both username and password in credentails tab."
-        );
-        return;
-      }
-
-      setMessage("Credentials found, running scraping");
-      await handleAutomationtask();
+      setMessage("Credentials found, please wait...");
+      return true;
     } catch (error) {
-      setMessage(`${error}`);
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleSetEmail = async () => {
-    if (!email) return;
-
-    setProcessing(true);
-    setMessage("Saving email");
-    try {
-      await api.post("/set_email", { email });
-      // setEmail("");
-      setMessage("Email saved! Checking amazon credentails");
-
-      const data = await api.get("/get_amazon_credentials");
-
-      if (
-        data.message === "No Amazon credentials stored" &&
-        data.status === "error"
-      ) {
-        setMessage("Amazon credentials not found, Please enter them below.");
-        return;
-      }
-
-      setMessage("Credentials found, running scraping");
-
-      await handleAutomationtask();
-    } catch (error) {
-      setMessage(`Error: ${error}`);
-    } finally {
-      setProcessing(false);
+      setMessage(`Error checking credentials: ${error}`);
+      return false;
     }
   };
 
   const handleAutomationtask = async () => {
     setProcessing(true);
     try {
+      setMessage("Scraping started...");
       await streamAPIResponse("/scrape", setMessage);
       setMessage("Scraping completed, fetching output file");
       setOutputFileUrl(null);
@@ -318,26 +249,26 @@ const Dashboard = () => {
   };
 
   const handleSetCredentials = async () => {
-    if (!amazonCredentials.username || !amazonCredentials.password) return;
+    if (
+      !amazonCredentials.username ||
+      !amazonCredentials.password ||
+      !amazonCredentials.email
+    ) {
+      setCredentialMessages("Please enter all the credentials.");
+      return;
+    }
 
     setProcessing(true);
-    setMessage("Saving credentials");
+    setCredentialMessages("Saving credentials");
     try {
-      await api.post("/set_amazon_credentials", {
+      await api.post("/set_credentials", {
         username: amazonCredentials.username,
         password: amazonCredentials.password,
+        email: amazonCredentials.email,
       });
-      setMessage("Credentials saved! Running scraping");
-      // setAmazonCredentials({ username: "", password: "" });
-      const storedCredentials = localStorage.getItem("amazonCredentials");
-      // console.log(storedCredentials,"storedCredentials")
-      if (storedCredentials) {
-        await handleAutomationtask();
-      } else {
-        console.log("No stored credentials found.");
-      }
+      setCredentialMessages("Credentials saved successfully");
     } catch (error) {
-      setMessage(`Error: ${error}`);
+      setCredentialMessages(`Error: ${error}`);
     } finally {
       setProcessing(false);
     }
@@ -345,14 +276,13 @@ const Dashboard = () => {
 
   const handleClearCredentials = async () => {
     setProcessing(true);
-    setMessage("Clearing credentials");
-    localStorage.setItem("amazonCredentials", JSON.stringify(false));
+    setCredentialMessages("Clearing credentials");
     try {
-      await api.get("/clear_amazon_credentials");
-      setMessage("Amazon credentials cleared successfully!");
-      setAmazonCredentials({ username: "", password: "" });
+      await api.get("/clear_credentials");
+      setAmazonCredentials({ username: "", password: "", email: "" });
+      setCredentialMessages("Credentials cleared successfully!");
     } catch (error) {
-      setMessage(`Error: ${error}`);
+      setCredentialMessages(`Error: ${error}`);
     } finally {
       setProcessing(false);
     }
@@ -375,20 +305,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleClearEmail = async () => {
-    setProcessing(true);
-    setMessage("Clearing emails");
-    try {
-      await api.get("/clear_email");
-      setMessage("Email cleared successfully!");
-      setEmail("");
-    } catch (error) {
-      setMessage(`Error clearing email: ${error}`);
-    } finally {
-      setProcessing(false);
-    }
-  };
-
   const handleCheckoutAmount = async () => {
     if (!checkoutAmount) {
       setMessage("Please enter checkout amount");
@@ -400,7 +316,6 @@ const Dashboard = () => {
       const checkoutResponse = await api.post("/confirm_checkout", {
         total_paid: checkoutAmount,
       });
-      console.log("checkoutResponse", checkoutResponse);
       setMessage(checkoutResponse.message);
       setShowCheckout(false);
     } catch (error) {
@@ -440,25 +355,6 @@ const Dashboard = () => {
             <p className="text-gray-600 text-sm">
               Manage Amazon and Email credentials
             </p>
-
-            {/* Credential Type Toggle */}
-            <div className="flex border-b mt-4 bg-gray-200 rounded-lg overflow-hidden">
-              {["Amazon", "Email"].map((cred) => (
-                <button
-                  key={cred}
-                  className={`py-2 px-4 flex-1 text-center font-medium transition-all ${
-                    activeCredential === cred
-                      ? "bg-white text-black border-b-2 "
-                      : "text-gray-600"
-                  }`}
-                  onClick={() => setActiveCredential(cred)}
-                >
-                  {cred} Credentials
-                </button>
-              ))}
-            </div>
-
-            {/* Buttons */}
             <div className="flex justify-end gap-4 mt-4">
               <button
                 className=" border rounded-lg bg-white text-black px-4 py-2 hover:bg-gray-100"
@@ -485,16 +381,25 @@ const Dashboard = () => {
                 </a>
               )}
             </div>
-
-            {/* Credentials Form */}
-            {activeCredential === "Amazon" && showForm && (
+            {showForm && (
               <div className="mt-4 p-4 border rounded-lg bg-white">
+                <label className="block text-sm font-medium text-gray-700 mt-4">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  name="email"
+                  value={amazonCredentials.email}
+                  onChange={handleChange}
+                  className="w-full p-2 mb-2 border rounded"
+                />
                 <label className="block text-sm font-medium text-gray-700">
                   Username
                 </label>
                 <input
                   type="text"
-                  placeholder="Username"
+                  placeholder="Enter your username"
                   name="username"
                   value={amazonCredentials.username}
                   onChange={handleChange}
@@ -505,12 +410,21 @@ const Dashboard = () => {
                 </label>
                 <input
                   type="password"
-                  placeholder="Password"
+                  placeholder="Enter your Password"
                   name="password"
                   value={amazonCredentials.password}
                   onChange={handleChange}
                   className="w-full p-2 mb-2 border rounded"
                 />
+                <p
+                  className={`text-base mt-3 ${
+                    credentialMessages == "Please enter all the credentials."
+                      ? "text-red-700"
+                      : "text-black-700"
+                  } break-words whitespace-normal overflow-hidden leading-relaxed`}
+                >
+                  {credentialMessages}
+                </p>
                 <div className="flex gap-2">
                   <button
                     className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
@@ -520,64 +434,12 @@ const Dashboard = () => {
                     <BiSave size={20} />
                     Save Changes
                   </button>
-                  {/* {showCredentialsForm && (
-                    <button
-                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                      onClick={handleSetCredentials}
-                      disabled={processing}
-                    >
-                      <BiSave size={20} />
-                      Save Changes
-                    </button>
-                  )} */}
                   <button
                     onClick={handleClearCredentials}
                     disabled={processing}
                     className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
                   >
                     Clear Amazon Credentials
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeCredential === "Email" && showForm && (
-              <div className="mt-4 p-4 border rounded-lg bg-white">
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-2 mb-2 border rounded"
-                />
-                <div className="flex gap-2">
-                  <button
-                    className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                    onClick={handleSetEmail}
-                    disabled={processing}
-                  >
-                    <BiSave size={20} />
-                    Save Changes
-                  </button>
-                  {/* {showEmailForm && (
-                    <button
-                      className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                      onClick={handleSetEmail}
-                      disabled={processing}
-                    >
-                      <BiSave size={20} />
-                      Save Changes
-                    </button>
-                  )} */}
-                  <button
-                    onClick={handleClearEmail}
-                    disabled={processing}
-                    className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
-                  >
-                    Clear Email
                   </button>
                 </div>
               </div>
@@ -613,14 +475,16 @@ const Dashboard = () => {
                 Only Excel files (.xls, .xlsx) are supported
               </p>
             </label>
-            <div className="flex flex-row items-center justify-center space-x-2">
-              {/* {processing && <Loader />} */}
-              {message && (
-                <p className="text-sm mt-3 text-gray-700 break-all whitespace-normal overflow-hidden">
+            {message && (
+              <div className="flex flex-row items-center justify-center space-x-2 border-2 rounded-lg mt-3 p-2 bg-gray-50">
+                {/* {processing && <Loader />} */}
+                <p
+                  className={`text-base text-gray-800 break-words whitespace-normal overflow-hidden leading-relaxed text-justify tracking-wide custom-font-style`}
+                >
                   {message}
                 </p>
-              )}
-            </div>
+              </div>
+            )}
             {otpRequested && (
               <div className="flex items-center justify-center space-x-2 mt-5">
                 <div>
@@ -734,154 +598,6 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-
-      {/* old code */}
-      {/* <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white/50 to-gray-900 p-4 dark:bg-gray-700">
-        <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
-          Amazon Automation Dashboard
-        </h2>
-
-        <div
-          className="w-full max-w-xl border border-dashed border-gray-400 rounded-lg p-6 mb-4 bg-white dark:bg-gray-700"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center">
-            <img src="./files.svg" alt="Upload" className="mb-2 w-16 h-16" />
-            <p className="text-gray-700 dark:text-gray-200 mb-4">
-              Drag & Drop your file here
-            </p>
-          </div>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
-            OR
-          </p>
-          <div className="text-center">
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-            >
-              {processing ? "Processing" : "Browse Files"}
-              {processing && <Loader />}
-            </label>
-            <input
-              id="file-upload"
-              type="file"
-              onChange={handleFileUpload}
-              disabled={processing}
-              className="hidden"
-            />
-          </div>
-        </div>
-
-        {message && (
-          <p className="mb-4 text-gray-800 dark:text-gray-100">{message}</p>
-        )}
-
-        <div className="flex space-x-4 mb-4">
-          {outputFileUrl && (
-            <a
-              href={outputFileUrl}
-              download="output.xlsx"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-            >
-              Download Output File
-            </a>
-          )}
-          {inputFileUrl && (
-            <a
-              href={inputFileUrl}
-              download="input.xlsx"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-            >
-              Download Input File
-            </a>
-          )}
-        </div>
-
-        {!processing && (
-          <div className="flex space-x-4 mb-4">
-            <button
-              onClick={handleClearCredentials}
-              disabled={processing}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-            >
-              Clear Credentials
-            </button>
-            <button
-              onClick={handleClearEmail}
-              disabled={processing}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-            >
-              Clear Email
-            </button>
-          </div>
-        )}
-
-        {showCredentialsForm && (
-          <div className="w-full max-w-md bg-white dark:bg-gray-700 p-4 rounded mb-4">
-            <input
-              type="text"
-              placeholder="Username"
-              name="username"
-              value={amazonCredentials.username}
-              onChange={handleChange}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              name="password"
-              value={amazonCredentials.password}
-              onChange={handleChange}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <button
-              onClick={handleSetCredentials}
-              disabled={processing}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-            >
-              Submit
-            </button>
-          </div>
-        )}
-
-        {showEmailForm && (
-          <div className="w-full max-w-md bg-white dark:bg-gray-700 p-4 rounded mb-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <button
-              onClick={handleSetEmail}
-              disabled={processing}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-            >
-              Submit Email
-            </button>
-          </div>
-        )}
-
-        {otpRequested && (
-          <div className="w-full max-w-md bg-white dark:bg-gray-700 p-4 rounded">
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <button
-              onClick={handleOtpSubmit}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-            >
-              Submit OTP
-            </button>
-          </div>
-        )}
-      </div> */}
     </>
   );
 };

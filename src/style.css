@@ -126,6 +126,10 @@ body {
     max-width: 406px !important;
 }
 
+.custom-font-style {
+    font-family: 'Montserrat Regular' !important;
+}
+
 .bg_main button {
     background: #043177;
     color: #FFFFFF;

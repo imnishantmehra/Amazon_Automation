@@ -21,7 +21,10 @@ const request = async (method, endpoint, data = null, config = {}) => {
         const response = await axiosInstance({ method, url: endpoint, data, ...config })
         return response.data
     } catch (error) {
-        throw error.response?.data?.message || error.response?.data || error.message;
+        if (error.response?.status === 400) {
+            throw new Error('Bad Request: ' + (error.response?.data?.error || 'Invalid input or parameters.'));
+        }
+        throw error.response?.data?.message || error.response?.data || error.message
     }
 }
 

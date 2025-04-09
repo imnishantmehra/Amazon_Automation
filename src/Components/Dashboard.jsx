@@ -50,33 +50,33 @@ const Dashboard = () => {
     },
   ]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      setProcessing(true);
-      setMessage("Running scheduled tasks");
-      try {
-        const inputFileResponse = await api.get("/inputfile", {
-          responseType: "blob",
-        });
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     setProcessing(true);
+  //     setMessage("Running scheduled tasks");
+  //     try {
+  //       const inputFileResponse = await api.get("/inputfile", {
+  //         responseType: "blob",
+  //       });
 
-        if (inputFileResponse.status !== 200) {
-          setMessage("Failed to retrieve file, scheduled task stopped");
-          return;
-        }
-        setMessage("File retrieved successfully, checking credentials");
-        const requirement = await checkRequirements();
-        if (requirement) {
-          await handleAutomationtask();
-        }
-      } catch (error) {
-        console.error("Error in scheduled tasks:", error);
-      } finally {
-        setProcessing(false);
-      }
-    }, 604800000);
+  //       if (inputFileResponse.status !== 200) {
+  //         setMessage("Failed to retrieve file, scheduled task stopped");
+  //         return;
+  //       }
+  //       setMessage("File retrieved successfully, checking credentials");
+  //       const requirement = await checkRequirements();
+  //       if (requirement) {
+  //         await handleAutomationtask();
+  //       }
+  //     } catch (error) {
+  //       console.error("Error in scheduled tasks:", error);
+  //     } finally {
+  //       setProcessing(false);
+  //     }
+  //   }, 604800000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const getCredentials = async () => {
     try {
@@ -89,8 +89,8 @@ const Dashboard = () => {
           email: data.email,
         });
       }
-    } catch (e) {
-      console.error("Error fetching Amazon credentials:", e);
+    } catch (error) {
+      setCredentialMessages(error);
     }
   };
 
@@ -151,7 +151,7 @@ const Dashboard = () => {
         }
       }
     } catch (error) {
-      setMessage(`Error: ${error}`);
+      setMessage(`${error}`);
     } finally {
       setProcessing(false);
     }
@@ -303,7 +303,7 @@ const Dashboard = () => {
       );
       setShowCheckout(false);
     } catch (error) {
-      setMessage(`Error: ${error}`);
+      setMessage(`Error: ${error.message || error}`);
     } finally {
       setProcessing(false);
     }
@@ -488,7 +488,7 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-            {showCheckout && (
+            {!showCheckout && (
               <div className="flex items-center justify-center space-x-2 mt-5">
                 <div className="flex flex-col items-center justify-center">
                   <a

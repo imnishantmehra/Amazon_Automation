@@ -81,7 +81,6 @@ const Dashboard = () => {
   const getCredentials = async () => {
     try {
       const data = await api.get("/get_credentials");
-      console.log("data", data);
 
       if (data.error !== "No credentials stored") {
         setAmazonCredentials({

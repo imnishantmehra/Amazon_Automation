@@ -81,8 +81,9 @@ const Dashboard = () => {
   const getCredentials = async () => {
     try {
       const data = await api.get("/get_credentials");
+      console.log("data", data);
 
-      if (data.message !== "No credentials stored" && data.status !== "error") {
+      if (data.error !== "No credentials stored") {
         setAmazonCredentials({
           username: data.amazon.username,
           password: data.amazon.password,
@@ -303,7 +304,6 @@ const Dashboard = () => {
       );
       setShowCheckout(false);
     } catch (error) {
-      console.log("error", error);
       setMessage(`Error: ${error.error || error.message || error}`);
     } finally {
       setProcessing(false);
@@ -401,15 +401,17 @@ const Dashboard = () => {
                   onChange={handleChange}
                   className="w-full p-2 mb-2 border rounded"
                 />
-                <p
-                  className={`text-base mt-3 ${
-                    credentialMessages == "Please enter all the credentials."
-                      ? "text-red-700"
-                      : "text-black-700"
-                  } break-words whitespace-normal overflow-hidden leading-relaxed`}
-                >
-                  {credentialMessages}
-                </p>
+                {credentialMessages && (
+                  <p
+                    className={`text-base mt-3 ${
+                      credentialMessages === "Please enter all the credentials."
+                        ? "text-red-700"
+                        : "text-black-700"
+                    } break-words whitespace-normal overflow-hidden leading-relaxed`}
+                  >
+                    {credentialMessages}
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <button
                     className="flex item-center gap-2 mt-4 bg-black text-white px-4 py-2 rounded-md"
@@ -489,7 +491,7 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-            {!showCheckout && (
+            {showCheckout && (
               <div className="flex items-center justify-center space-x-2 mt-5">
                 <div className="flex flex-col items-center justify-center">
                   <a

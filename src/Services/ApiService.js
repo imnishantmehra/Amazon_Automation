@@ -21,8 +21,10 @@ const request = async (method, endpoint, data = null, config = {}) => {
         const response = await axiosInstance({ method, url: endpoint, data, ...config })
         return response.data
     } catch (error) {
-        if (error.response?.status === 400 || error.response?.status === 503) {
+        if (error.response?.status === 400) {
             throw new Error('Bad Request: ' + (error.response?.data?.error || 'Invalid input or parameters.'));
+        } else if (error.response?.status === 503) {
+            throw new Error('Service Unavailable: ' + (error.response?.data?.error || 'The service is currently unavailable. Please try again later.'));
         }
         throw error.response?.data?.message || error.response?.data?.error || error.response?.data || error.message
     }

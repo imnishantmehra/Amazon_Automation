@@ -303,7 +303,8 @@ const Dashboard = () => {
       );
       setShowCheckout(false);
     } catch (error) {
-      setMessage(`Error: ${error.message || error}`);
+      console.log("error", error);
+      setMessage(`Error: ${error.error || error.message || error}`);
     } finally {
       setProcessing(false);
     }
@@ -488,7 +489,7 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-            {showCheckout && (
+            {!showCheckout && (
               <div className="flex items-center justify-center space-x-2 mt-5">
                 <div className="flex flex-col items-center justify-center">
                   <a

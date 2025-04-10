@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-    "https://290b-2405-201-3009-d88a-15f-53be-734c-3b59.ngrok-free.app";
+    "https://6b5f-2405-201-3009-d88a-245e-2630-b74f-2a7c.ngrok-free.app";
 
 const axiosConfigForFetch = {
     headers: {
@@ -21,10 +21,10 @@ const request = async (method, endpoint, data = null, config = {}) => {
         const response = await axiosInstance({ method, url: endpoint, data, ...config })
         return response.data
     } catch (error) {
-        if (error.response?.status === 400) {
+        if (error.response?.status === 400 || error.response?.status === 503) {
             throw new Error('Bad Request: ' + (error.response?.data?.error || 'Invalid input or parameters.'));
         }
-        throw error.response?.data?.message || error.response?.data || error.message
+        throw error.response?.data?.message || error.response?.data?.error || error.response?.data || error.message
     }
 }
 

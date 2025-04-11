@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-    "https://d071-2405-201-3009-d88a-b419-3ca9-8a25-18ab.ngrok-free.app";
+    "https://06d6-2405-201-3009-d88a-f7af-a4c4-5e40-cb7d.ngrok-free.app";
 
 const axiosConfigForFetch = {
     headers: {

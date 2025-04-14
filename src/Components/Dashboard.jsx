@@ -69,7 +69,7 @@ const Dashboard = () => {
   //         await handleAutomationtask();
   //       }
   //     } catch (error) {
-  //       console.error("Error in scheduled tasks:", error);
+  //       console.error(`Error: ${error.message}${error.status ? ` [Status Code: ${error.status}]` : ''}`);
   //     } finally {
   //       setProcessing(false);
   //     }
@@ -90,7 +90,11 @@ const Dashboard = () => {
         });
       }
     } catch (error) {
-      setCredentialMessages(error);
+      setCredentialMessages(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     }
   };
 
@@ -151,7 +155,11 @@ const Dashboard = () => {
         }
       }
     } catch (error) {
-      setMessage(`${error}`);
+      setMessage(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     } finally {
       setProcessing(false);
     }
@@ -175,7 +183,11 @@ const Dashboard = () => {
       setMessage("Credentials found, please wait...");
       return true;
     } catch (error) {
-      setMessage(`Error checking credentials: ${error}`);
+      setMessage(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
       return false;
     }
   };
@@ -224,7 +236,11 @@ const Dashboard = () => {
         setShowCheckout(true);
       }
     } catch (error) {
-      setMessage(`Error: ${error}`);
+      setMessage(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     } finally {
       setProcessing(false);
     }
@@ -250,7 +266,11 @@ const Dashboard = () => {
       });
       setCredentialMessages("Credentials saved successfully");
     } catch (error) {
-      setCredentialMessages(`Error: ${error}`);
+      setCredentialMessages(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     } finally {
       setProcessing(false);
     }
@@ -264,7 +284,11 @@ const Dashboard = () => {
       setAmazonCredentials({ username: "", password: "", email: "" });
       setCredentialMessages("Credentials cleared successfully!");
     } catch (error) {
-      setCredentialMessages(`Error: ${error}`);
+      setCredentialMessages(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     } finally {
       setProcessing(false);
     }
@@ -281,7 +305,11 @@ const Dashboard = () => {
       setOtpRequested(false);
       otpSubmitted.current = true;
     } catch (error) {
-      setMessage(`Wrong OTP Entered: ${error}`);
+      setMessage(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     } finally {
       setProcessing(false);
     }
@@ -303,7 +331,11 @@ const Dashboard = () => {
       );
       setShowCheckout(false);
     } catch (error) {
-      setMessage(`Error: ${error.error || error.message || error}`);
+      setMessage(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
     } finally {
       setProcessing(false);
     }

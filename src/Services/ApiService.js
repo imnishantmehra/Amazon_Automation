@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-    "https://06d6-2405-201-3009-d88a-f7af-a4c4-5e40-cb7d.ngrok-free.app";
+    "https://amazon-scrape-backend-899820581573.us-central1.run.app";
 
 const axiosConfigForFetch = {
     headers: {
@@ -18,17 +18,47 @@ const axiosInstance = axios.create({
 
 const request = async (method, endpoint, data = null, config = {}) => {
     try {
-        const response = await axiosInstance({ method, url: endpoint, data, ...config })
-        return response.data
+        const response = await axiosInstance({ method, url: endpoint, data, ...config });
+        return response.data;
     } catch (error) {
-        if (error.response?.status === 400) {
-            throw new Error('Bad Request: ' + (error.response?.data?.error || 'Invalid input or parameters.'));
-        } else if (error.response?.status === 503) {
-            throw new Error('Service Unavailable: ' + (error.response?.data?.error || 'The service is currently unavailable. Please try again later.'));
+        let errorMessage = "Unknown error occurred";
+        let errorCode = 500;  // Default to server error
+
+        // Check if error has a response (HTTP error response from the server)
+        if (error.response) {
+            errorCode = error.response.status;
+
+            // If the server returns an error message or a custom error, include it
+            errorMessage = error.response?.data?.error || error.response?.data?.message || "Unknown server error";
+
+            // Handle specific HTTP status codes
+            if (errorCode === 400) {
+                errorMessage = `Bad Request: ${errorMessage}`;
+            } else if (errorCode === 401) {
+                errorMessage = `Unauthorized: ${errorMessage}`;
+            } else if (errorCode === 403) {
+                errorMessage = `Forbidden: ${errorMessage}`;
+            } else if (errorCode === 404) {
+                errorMessage = `Not Found: ${errorMessage}`;
+            } else if (errorCode === 500) {
+                errorMessage = `Internal Server Error: ${errorMessage}`;
+            } else if (errorCode === 503) {
+                errorMessage = `Service Unavailable: ${errorMessage}`;
+            }
+        } else if (error.request) {
+            // This is a case where the request was made but no response was received
+            errorMessage = "No response received from the server.";
+            errorCode = 504;  // Gateway Timeout
+        } else {
+            // If the error is not related to HTTP response or request, it's a general Axios error
+            errorMessage = error.message || "Unknown error occurred";
+            errorCode = 500;  // Default to server error
         }
-        throw error.response?.data?.message || error.response?.data?.error || error.response?.data || error.message
+
+        // Return a structured error with the status code and message
+        throw { status: errorCode, message: errorMessage };
     }
-}
+};
 
 export const api = {
     get: (endpoint, config = {}) => request("get", endpoint, null, config),
@@ -90,9 +120,14 @@ export const streamAPIResponse = async (
             }
         }
     } catch (error) {
-        // setMessage(`Error: ${error.response?.data?.message || error.response?.data || error.message}`);
-        // console.log("error", error);
-        throw (error.response?.data?.message || error.response?.data || error.message);
+        const message =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            error?.message ||
+            error.response?.data ||
+            'Unknown streaming error';
+
+        throw new Error(message);
     }
 };
 
@@ -116,12 +151,11 @@ export const retryAutomation = async (url, setMessage, setOtpRequested, otpSubmi
         } catch (error) {
             attempts++;
 
-            if (error === "OTP submission timeout. Please re-initiate the process.") {
+            if (error.message === "OTP submission timeout. Please re-initiate the process.") {
                 return { "status": false, "message": "OTP submission timeout. Please re-initiate the process." }
             }
 
             if (attempts >= 5) {
-                // setMessage("Automation failed after 5 attempts.");
                 return { "status": false, "message": "Automation failed after 5 attempts." }
             }
             await new Promise((resolve) => setTimeout(resolve, 5000));

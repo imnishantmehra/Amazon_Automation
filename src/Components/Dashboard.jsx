@@ -14,8 +14,10 @@ const Dashboard = () => {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const [credentialMessages, setCredentialMessages] = useState("");
-  const [inputFileUrl, setInputFileUrl] = useState(false);
-  const [outputFileUrl, setOutputFileUrl] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [showLogsError, setshowLogsError] = useState("");
+  const [inputFileUrl, setInputFileUrl] = useState(null);
+  const [outputFileUrl, setOutputFileUrl] = useState(null);
   const [amazonCredentials, setAmazonCredentials] = useState({
     username: "",
     password: "",
@@ -139,6 +141,7 @@ const Dashboard = () => {
     if (!file) return;
 
     setProcessing(true);
+    setFileName(file.name);
     try {
       const requirement = await checkRequirements();
       if (requirement) {
@@ -326,12 +329,66 @@ const Dashboard = () => {
       const checkoutResponse = await api.post("/confirm_checkout", {
         total_paid: checkoutAmount,
       });
+      setShowCheckout(false);
       setMessage(
         `${checkoutResponse.message} with the odoo order id: ${checkoutResponse.odoo_order_id}`
       );
-      setShowCheckout(false);
     } catch (error) {
       setMessage(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDownloadLogsFile = async () => {
+    setProcessing(true);
+    setshowLogsError("Fetching logs file, please wait...");
+
+    try {
+      const response = await api.get("/download_logs", {
+        responseType: "blob",
+      });
+
+      const blobUrl = convertBlobToURL(response);
+
+      // Create a temporary <a> element to trigger download
+      const link = document.createElement("a");
+      link.href = blobUrl;
+
+      // Optional: set a default filename
+      link.download = "logs_file.txt";
+
+      // Append link to body and trigger click
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+      setshowLogsError("Logs File was downloaded successfully");
+    } catch (error) {
+      setshowLogsError(
+        `Error: ${error.message}${
+          error.status ? ` [Status Code: ${error.status}]` : ""
+        }`
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    setProcessing(true);
+    try {
+      await api.get("/clear_logs");
+      setshowLogsError("Logs cleared successfully");
+    } catch (error) {
+      setshowLogsError(
         `Error: ${error.message}${
           error.status ? ` [Status Code: ${error.status}]` : ""
         }`
@@ -349,7 +406,7 @@ const Dashboard = () => {
 
         {/* Navigation Tabs */}
         <div className="flex border-b bg-gray-200 rounded-lg overflow-hidden">
-          {["Credentials", "File Upload", "Task Manager"].map((tab) => (
+          {["Credentials", "File Upload", "Logs"].map((tab) => (
             <button
               key={tab}
               className={`py-2 px-4 flex-1 text-center font-medium transition-all ${
@@ -399,39 +456,43 @@ const Dashboard = () => {
             </div>
             {showForm && (
               <div className="mt-4 p-4 border rounded-lg bg-white">
-                <label className="block text-sm font-medium text-gray-700 mt-4">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  name="email"
-                  value={amazonCredentials.email}
-                  onChange={handleChange}
-                  className="w-full p-2 mb-2 border rounded"
-                />
-                <label className="block text-sm font-medium text-gray-700">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter your username"
-                  name="username"
-                  value={amazonCredentials.username}
-                  onChange={handleChange}
-                  className="w-full p-2 mb-2 border rounded"
-                />
-                <label className="block text-sm font-medium text-gray-700 mt-4">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Enter your Password"
-                  name="password"
-                  value={amazonCredentials.password}
-                  onChange={handleChange}
-                  className="w-full p-2 mb-2 border rounded"
-                />
+                <div className="bg-gray-100 border border-gray-200 p-4 rounded-md shadow-sm">
+                  <label className="block text-sm font-medium text-gray-700 mt-4">
+                    Email (Add to cart updates will be sent on this email)
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="Enter the email, you want to receive the updates on after the product is added to cart"
+                    name="email"
+                    value={amazonCredentials.email}
+                    onChange={handleChange}
+                    className="w-full p-2 mb-2 border rounded"
+                  />
+                </div>
+                <div className="bg-gray-100 border border-gray-200 p-4 rounded-md shadow-sm mt-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Amazon Username
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your amazon username"
+                    name="username"
+                    value={amazonCredentials.username}
+                    onChange={handleChange}
+                    className="w-full p-2 mb-2 border rounded"
+                  />
+                  <label className="block text-sm font-medium text-gray-700 mt-4">
+                    Amazon Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter your amazon password"
+                    name="password"
+                    value={amazonCredentials.password}
+                    onChange={handleChange}
+                    className="w-full p-2 mb-2 border rounded"
+                  />
+                </div>
                 {credentialMessages && (
                   <p
                     className={`text-base mt-3 ${
@@ -473,6 +534,9 @@ const Dashboard = () => {
             onDrop={handleDrop}
           >
             <h2 className="text-2xl font-bold mb-2">Upload Excel File</h2>
+            {fileName && (
+              <p className="text-gray-600 mb-2">File Name: {fileName}</p>
+            )}
             <p className="text-gray-600 mb-4">
               Upload or drag and drop an Excel file (.xls or .xlsx)
             </p>
@@ -554,68 +618,87 @@ const Dashboard = () => {
           </div>
         )}
 
-        {activeTab === "Task Manager" && (
-          <div className=" mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold">Task Manager</h2>
-            <p className="text-gray-500">View hourly task execution reports</p>
-
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 flex items-center gap-1">
-                  <IoMdTime /> Runs hourly
-                </span>
-                <span className="bg-green-100 text-green-700 px-2 py-1 text-sm rounded-full flex items-center gap-1">
-                  <LiaCheckCircleSolid /> Success
-                </span>
-                <span className="bg-red-100 text-red-700 px-2 py-1 text-sm rounded-full flex items-center gap-1">
-                  <LiaTimesCircleSolid /> Failed
-                </span>
-              </div>
-              {/* <button className="flex items-center bg-gray-100 px-4 py-2 text-gray-700 rounded-lg shadow hover:bg-gray-200">
-                <FaSyncAlt className="mr-2" /> Refresh
-              </button> */}
+        {activeTab === "Logs" && (
+          <div className="mt-10 p-6 bg-white rounded-lg shadow-md">
+            <div className="flex justify-center items-center">
+              <button
+                onClick={handleDownloadLogsFile}
+                className="mx-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
+              >
+                Download Logs File
+              </button>
+              <button
+                onClick={handleClearLogs}
+                className="mx-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
+              >
+                Clear Logs
+              </button>
             </div>
-            {/* <p className="text-gray-500 text-right mt-4">
-              Next run: 5:30:00 PM
-            </p> */}
-
-            <div className="mt-4">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="text-left text-gray-600 bg-gray-100">
-                    <th className="p-3">Time</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Duration</th>
-                    <th className="p-3">Message</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tasks.map((task, index) => (
-                    <tr key={index} className="border-b text-gray-700">
-                      <td className="p-3">{task.time}</td>
-
-                      <td className="p-3">
-                        {task.status === "Success" ? (
-                          <span className="flex items-center w-24 gap-1 px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700">
-                            <LiaCheckCircleSolid className="text-green-600" />
-                            {task.status}
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-700 w-24">
-                            <LiaTimesCircleSolid className="text-red-600" />
-                            {task.status}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="p-3">{task.duration}</td>
-                      <td className="p-3">{task.message}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="text-center mt-5">
+              {showLogsError && <p>{showLogsError}</p>}
             </div>
           </div>
+          // <div className=" mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+          //   <h2 className="text-2xl font-bold">Logs</h2>
+          //   <p className="text-gray-500">View hourly task execution reports</p>
+
+          //   <div className="flex items-center justify-between mt-4">
+          //     <div className="flex items-center gap-2">
+          //       <span className="text-gray-500 flex items-center gap-1">
+          //         <IoMdTime /> Runs hourly
+          //       </span>
+          //       <span className="bg-green-100 text-green-700 px-2 py-1 text-sm rounded-full flex items-center gap-1">
+          //         <LiaCheckCircleSolid /> Success
+          //       </span>
+          //       <span className="bg-red-100 text-red-700 px-2 py-1 text-sm rounded-full flex items-center gap-1">
+          //         <LiaTimesCircleSolid /> Failed
+          //       </span>
+          //     </div>
+          //     {/* <button className="flex items-center bg-gray-100 px-4 py-2 text-gray-700 rounded-lg shadow hover:bg-gray-200">
+          //       <FaSyncAlt className="mr-2" /> Refresh
+          //     </button> */}
+          //   </div>
+          //   {/* <p className="text-gray-500 text-right mt-4">
+          //     Next run: 5:30:00 PM
+          //   </p> */}
+
+          //   <div className="mt-4">
+          //     <table className="w-full border-collapse">
+          //       <thead>
+          //         <tr className="text-left text-gray-600 bg-gray-100">
+          //           <th className="p-3">Time</th>
+          //           <th className="p-3">Status</th>
+          //           <th className="p-3">Duration</th>
+          //           <th className="p-3">Message</th>
+          //         </tr>
+          //       </thead>
+          //       <tbody>
+          //         {tasks.map((task, index) => (
+          //           <tr key={index} className="border-b text-gray-700">
+          //             <td className="p-3">{task.time}</td>
+
+          //             <td className="p-3">
+          //               {task.status === "Success" ? (
+          //                 <span className="flex items-center w-24 gap-1 px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700">
+          //                   <LiaCheckCircleSolid className="text-green-600" />
+          //                   {task.status}
+          //                 </span>
+          //               ) : (
+          //                 <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-700 w-24">
+          //                   <LiaTimesCircleSolid className="text-red-600" />
+          //                   {task.status}
+          //                 </span>
+          //               )}
+          //             </td>
+
+          //             <td className="p-3">{task.duration}</td>
+          //             <td className="p-3">{task.message}</td>
+          //           </tr>
+          //         ))}
+          //       </tbody>
+          //     </table>
+          //   </div>
+          // </div>
         )}
       </div>
     </>

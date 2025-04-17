@@ -597,7 +597,8 @@ const Dashboard = () => {
                   >
                     Proceed to Checkout
                   </a>
-                  <div className="flex flex-col items-center justify-center text-center">
+{/*                   disabling the below code temporary because of an oodo error */}
+{/*                   <div className="flex flex-col items-center justify-center text-center">
                     <input
                       type="text"
                       placeholder="Enter the checkout amount"
@@ -607,12 +608,11 @@ const Dashboard = () => {
                     />
                     <button
                       onClick={handleCheckoutAmount}
-                      disabled={true} //disabling it temporary because of an error
                       className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
                     >
                       Submit Amount
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}

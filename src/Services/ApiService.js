@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const API_BASE_URL = "https://amazon-scrape-backend-899820581573.us-central1.run.app";
-const API_BASE_URL = "https://77b8-49-43-7-169.ngrok-free.app";
+const API_BASE_URL = "https://amazon-scrape-backend-899820581573.us-central1.run.app";
+// const API_BASE_URL = "https://77b8-49-43-7-169.ngrok-free.app";
 
 const axiosConfigForFetch = {
     headers: {

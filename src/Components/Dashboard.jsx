@@ -597,8 +597,7 @@ const Dashboard = () => {
                   >
                     Proceed to Checkout
                   </a>
-{/*                   disabling the below code temporary because of an oodo error */}
-{/*                   <div className="flex flex-col items-center justify-center text-center">
+                  <div className="flex flex-col items-center justify-center text-center">
                     <input
                       type="text"
                       placeholder="Enter the checkout amount"
@@ -612,7 +611,7 @@ const Dashboard = () => {
                     >
                       Submit Amount
                     </button>
-                  </div> */}
+                  </div>
                 </div>
               </div>
             )}

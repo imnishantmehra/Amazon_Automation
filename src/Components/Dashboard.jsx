@@ -607,6 +607,7 @@ const Dashboard = () => {
                     />
                     <button
                       onClick={handleCheckoutAmount}
+                      disabled={true} //disabling it temporary because of an error
                       className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
                     >
                       Submit Amount

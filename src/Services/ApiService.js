@@ -78,7 +78,13 @@ export const streamAPIResponse = async (
     try {
         const response = await fetch(`${API_BASE_URL}${url}`, axiosConfigForFetch);
 
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+       if (!response.ok) {
+            return response.json().then(errorData => {
+                throw new Error(errorData.error || 'Something went wrong');
+                
+              });
+              
+        };
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();

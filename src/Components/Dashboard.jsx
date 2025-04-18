@@ -597,7 +597,7 @@ const Dashboard = () => {
                   >
                     Proceed to Checkout
                   </a>
-                  <div className="flex flex-col items-center justify-center text-center">
+{/*                   <div className="flex flex-col items-center justify-center text-center">
                     <input
                       type="text"
                       placeholder="Enter the checkout amount"
@@ -611,7 +611,7 @@ const Dashboard = () => {
                     >
                       Submit Amount
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}

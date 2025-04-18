@@ -239,11 +239,7 @@ const Dashboard = () => {
         setShowCheckout(true);
       }
     } catch (error) {
-      setMessage(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setMessage(error.message);
     } finally {
       setProcessing(false);
     }
@@ -558,7 +554,7 @@ const Dashboard = () => {
               </p>
             </label>
             {message && (
-              <div className="flex flex-row items-center justify-center space-x-2 border-2 rounded-lg mt-3 p-2 bg-gray-50">
+              <div className="w-[750px] max-lg:w-full justify-self-center flex flex-row items-center justify-center space-x-2 border-2 rounded-lg mt-3 p-2 bg-gray-50">
                 {/* {processing && <Loader />} */}
                 <p
                   className={`text-base text-gray-800 break-words whitespace-normal overflow-hidden leading-relaxed text-justify custom-font-style`}

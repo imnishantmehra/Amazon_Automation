@@ -24,6 +24,7 @@ const Dashboard = () => {
     email: "",
   });
   const [otp, setOtp] = useState("");
+  const [test, setTest] = useState([]);
   const [otpRequested, setOtpRequested] = useState(false);
   const [activeTab, setActiveTab] = useState("Credentials");
   const [showForm, setShowForm] = useState(false);
@@ -129,7 +130,7 @@ const Dashboard = () => {
 
   const handleFileUpload = async (uploadedfile) => {
     let file;
-
+    setTest(uploadedfile)
     if (uploadedfile.target) {
       // get file when uploaded through an input
       file = uploadedfile.target.files[0];
@@ -176,8 +177,7 @@ const Dashboard = () => {
       const credentialsData = await api.get("/get_credentials");
 
       if (
-        credentialsData.message === "No credentials stored" &&
-        credentialsData.status === "error"
+        credentialsData.error
       ) {
         setMessage("Credentials not found, please enter your credentials");
         return false;
@@ -264,6 +264,9 @@ const Dashboard = () => {
         email: amazonCredentials.email,
       });
       setCredentialMessages("Credentials saved successfully");
+      if(test){
+        handleFileUpload(test)
+      }
     } catch (error) {
       setCredentialMessages(
         `Error: ${error.message}${

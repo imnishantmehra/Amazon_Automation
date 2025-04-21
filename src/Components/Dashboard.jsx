@@ -24,13 +24,14 @@ const Dashboard = () => {
     email: "",
   });
   const [otp, setOtp] = useState("");
-  const [test, setTest] = useState([]);
+  const [test, setTest] = useState(null);
   const [otpRequested, setOtpRequested] = useState(false);
   const [activeTab, setActiveTab] = useState("Credentials");
   const [showForm, setShowForm] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutAmount, setCheckoutAmount] = useState("");
   const otpSubmitted = useRef(false);
+
   const fileInputRef = useRef(null);
   const [tasks, setTasks] = useState([
     {
@@ -93,11 +94,8 @@ const Dashboard = () => {
         });
       }
     } catch (error) {
-      setCredentialMessages(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setMessage(error.message);
+      setCredentialMessages(error.message);
     }
   };
 
@@ -130,7 +128,7 @@ const Dashboard = () => {
 
   const handleFileUpload = async (uploadedfile) => {
     let file;
-    setTest(uploadedfile)
+    setTest(uploadedfile);
     if (uploadedfile.target) {
       // get file when uploaded through an input
       file = uploadedfile.target.files[0];
@@ -139,7 +137,10 @@ const Dashboard = () => {
       file = uploadedfile;
     }
 
-    if (!file) return;
+    if (!file) {
+      setMessage("file not found");
+      return;
+    }
 
     setProcessing(true);
     setFileName(file.name);
@@ -149,9 +150,13 @@ const Dashboard = () => {
         const formData = new FormData();
         formData.append("file", file);
 
-        await api.post("/upload", formData);
-        setMessage("Uploading file, please wait...");
-
+        try {
+          setMessage("Uploading file, please wait...");
+          await api.post("/upload", formData);
+        } catch (error) {
+          setMessage(error.message);
+          return;
+        }
         await handleAutomationtask();
       } else {
         if (fileInputRef.current) {
@@ -159,11 +164,7 @@ const Dashboard = () => {
         }
       }
     } catch (error) {
-      setMessage(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setMessage(error.message);
     } finally {
       setProcessing(false);
     }
@@ -176,21 +177,15 @@ const Dashboard = () => {
     try {
       const credentialsData = await api.get("/get_credentials");
 
-      if (
-        credentialsData.error
-      ) {
-        setMessage("Credentials not found, please enter your credentials");
+      if (credentialsData.error) {
+        setMessage(credentialsData.error);
         return false;
       }
 
       setMessage("Credentials found, please wait...");
       return true;
     } catch (error) {
-      setMessage(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setMessage(error.message);
       return false;
     }
   };
@@ -223,7 +218,7 @@ const Dashboard = () => {
       });
       const newOutputFileUrl = convertBlobToURL(newOutputResponse);
       setOutputFileUrl(newOutputFileUrl);
-      setMessage("Fetched output file, fetching isetShowCheckOutnput file!");
+      setMessage("Fetched output file, fetching input file!");
 
       const inputFileResponse = await api.get("/inputfile", {
         responseType: "blob",
@@ -264,15 +259,11 @@ const Dashboard = () => {
         email: amazonCredentials.email,
       });
       setCredentialMessages("Credentials saved successfully");
-      if(test){
-        handleFileUpload(test)
+      if (test) {
+        handleFileUpload(test);
       }
     } catch (error) {
-      setCredentialMessages(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setCredentialMessages(error.message);
     } finally {
       setProcessing(false);
     }
@@ -286,11 +277,7 @@ const Dashboard = () => {
       setAmazonCredentials({ username: "", password: "", email: "" });
       setCredentialMessages("Credentials cleared successfully!");
     } catch (error) {
-      setCredentialMessages(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setCredentialMessages(error.message);
     } finally {
       setProcessing(false);
     }
@@ -307,11 +294,7 @@ const Dashboard = () => {
       setOtpRequested(false);
       otpSubmitted.current = true;
     } catch (error) {
-      setMessage(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setMessage(error.message);
     } finally {
       setProcessing(false);
     }
@@ -333,11 +316,7 @@ const Dashboard = () => {
         `${checkoutResponse.message} with the odoo order id: ${checkoutResponse.odoo_order_id}`
       );
     } catch (error) {
-      setMessage(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setMessage(error.message);
     } finally {
       setProcessing(false);
     }
@@ -345,37 +324,37 @@ const Dashboard = () => {
 
   const handleDownloadLogsFile = async () => {
     setProcessing(true);
-    setshowLogsError("Fetching logs file, please wait...");
 
     try {
       const response = await api.get("/download_logs", {
-        responseType: "blob",
+        responseType: "json",
       });
+      if (response.error === "Log file does not exist") {
+        setshowLogsError(response.error);
+        return;
+      } else {
+        setshowLogsError("Fetching logs file, please wait...");
+        const blobUrl = convertBlobToURL(response);
 
-      const blobUrl = convertBlobToURL(response);
+        // Create a temporary <a> element to trigger download
+        const link = document.createElement("a");
+        link.href = blobUrl;
 
-      // Create a temporary <a> element to trigger download
-      const link = document.createElement("a");
-      link.href = blobUrl;
+        // Optional: set a default filename
+        link.download = "logs_file.txt";
 
-      // Optional: set a default filename
-      link.download = "logs_file.txt";
+        // Append link to body and trigger click
+        document.body.appendChild(link);
+        link.click();
 
-      // Append link to body and trigger click
-      document.body.appendChild(link);
-      link.click();
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
 
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-
-      setshowLogsError("Logs File was downloaded successfully");
+        setshowLogsError("Logs File was downloaded successfully");
+      }
     } catch (error) {
-      setshowLogsError(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setshowLogsError(error.message);
     } finally {
       setProcessing(false);
     }
@@ -384,18 +363,50 @@ const Dashboard = () => {
   const handleClearLogs = async () => {
     setProcessing(true);
     try {
-      await api.get("/clear_logs");
-      setshowLogsError("Logs cleared successfully");
+      const response = await api.get("/clear_logs");
+      if (response.error === "Log file does not exist") {
+        setshowLogsError(response.error);
+      } else {
+        setshowLogsError("Logs cleared successfully");
+      }
     } catch (error) {
-      setshowLogsError(
-        `Error: ${error.message}${
-          error.status ? ` [Status Code: ${error.status}]` : ""
-        }`
-      );
+      setshowLogsError(error.message);
     } finally {
       setProcessing(false);
     }
   };
+  const handleDownload = async (type) => {
+    const apiPath = type === "output" ? "/outputfile" : "/inputfile";
+    const downloadFileName = type === "output" ? "output.xlsx" : "input.xlsx";
+    const apiUrl = apiPath;
+
+    try {
+        const response = await api.get(apiUrl, { responseType: "blob" });
+        console.log(response);
+
+        if (response) {
+            const blob = new Blob([response.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = downloadFileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+        } else {
+          alert(`${type === "output" ? "Output" : "Input"} file not found.`);
+        }
+    } catch (error) {
+        console.error("Error downloading file:", error);
+        alert(`${type === "output" ? "Output" : "Input"} file not found.`);
+    }
+};
+
 
   return (
     <>
@@ -435,22 +446,20 @@ const Dashboard = () => {
                 View Credentials
               </button>
               {outputFileUrl && (
-                <a
-                  href={outputFileUrl}
-                  download="output.xlsx"
+                <button
+                  onClick={() => handleDownload("output")}
                   className="border rounded-lg bg-white text-black px-4 py-2 hover:bg-gray-100"
                 >
                   Download Output File
-                </a>
+                </button>
               )}
               {inputFileUrl && (
-                <a
-                  href={inputFileUrl}
-                  download="input.xlsx"
+                <button
+                  onClick={() => handleDownload("input")}
                   className="border rounded-lg bg-white text-black px-4 py-2 hover:bg-gray-100"
                 >
                   Download Input File
-                </a>
+                </button>
               )}
             </div>
             {showForm && (
@@ -596,7 +605,7 @@ const Dashboard = () => {
                   >
                     Proceed to Checkout
                   </a>
-{/*                   <div className="flex flex-col items-center justify-center text-center">
+                  {/*                   <div className="flex flex-col items-center justify-center text-center">
                     <input
                       type="text"
                       placeholder="Enter the checkout amount"

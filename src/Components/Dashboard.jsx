@@ -83,8 +83,9 @@ const Dashboard = () => {
   const getCredentials = async () => {
     try {
       const data = await api.get("/get_credentials");
+      const message = data?.error || data?.message;
 
-      if (data.error !== "No credentials stored") {
+      if (message !== "No credentials stored") {
         setAmazonCredentials({
           username: data.amazon.username,
           password: data.amazon.password,
@@ -176,8 +177,8 @@ const Dashboard = () => {
       const credentialsData = await api.get("/get_credentials");
 
       if (
-        credentialsData.message === "No credentials stored" &&
-        credentialsData.status === "error"
+        credentialsData.error === "No credentials stored" ||
+        credentialsData.message === "No credentials stored"
       ) {
         setMessage("Credentials not found, please enter your credentials");
         return false;

@@ -1,0 +1,183 @@
+[33mcommit e9a6bf0c65b51a2ee9c46d827f353d0cee668dc1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Thu Apr 17 18:09:17 2025 +0530
+
+    base url changed
+
+[33mcommit 6a0d020f4d80ca340ccadd27c6ad660c32e8aca1[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Thu Apr 17 17:56:05 2025 +0530
+
+    download button added
+
+[33mcommit 93d40663fb0708f4151a9ff1dbb1c0af4091c672[m
+Merge: a7435eb c1452f0
+Author: Imnishantmehra <nishantmehra618@gmail.com>
+Date:   Mon Apr 14 17:25:21 2025 +0530
+
+    resolved conflicts
+
+[33mcommit a7435ebd9399829260b23254b4533c8eeb4c2139[m
+Author: Imnishantmehra <nishantmehra618@gmail.com>
+Date:   Mon Apr 14 17:21:18 2025 +0530
+
+    error handled
+
+[33mcommit c1452f059f3f907400813fcc750a1c028c58cb35[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Sat Apr 12 20:45:17 2025 +0530
+
+    Update ApiService.js Added by A
+
+[33mcommit af0ceaa3ba1f33b9b546f04be1d86f4de93f4304[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Fri Apr 11 20:03:41 2025 +0530
+
+    added ngrok
+
+[33mcommit 01aa47a86034c903c004776d2e6cd991c6eec704[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Fri Apr 11 12:12:59 2025 +0530
+
+    ngrok added
+
+[33mcommit 8a6348ab179cfa695e341889c045af77cfb6e08a[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Thu Apr 10 20:40:02 2025 +0530
+
+    log removed
+
+[33mcommit f8a69034fa6170453ab5770dbc710b0f43207872[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Thu Apr 10 20:37:53 2025 +0530
+
+    error handled for 200OK
+
+[33mcommit fe4466ed5f4b72aea3b8083dffcbb7377f8d660f[m
+Merge: ed67915 00ca43a
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Thu Apr 10 19:33:39 2025 +0530
+
+    Merge branch 'main' of https://github.com/imnishantmehra/Amazon_Automation
+
+[33mcommit ed67915999cc8622951515e9d41c6a6ff482aac1[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Thu Apr 10 19:33:20 2025 +0530
+
+    503 error added
+
+[33mcommit 00ca43ababaf1d476e38747de21335bf1e752d0e[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Thu Apr 10 18:24:43 2025 +0530
+
+    updated BE url.
+
+[33mcommit 1b794c843cf74cfb1c2752ece5d280508391c30c[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Thu Apr 10 17:05:24 2025 +0530
+
+    Update BE url.
+
+[33mcommit 5c07b8a1e723813d31d91bcd1b5a1f556b29bf18[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Wed Apr 9 20:11:07 2025 +0530
+
+    comments resolved'
+
+[33mcommit 3656a5bbdfe6ac4029f8280941f9a42ef27e1556[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Wed Apr 9 20:05:30 2025 +0530
+
+    400 error handled
+
+[33mcommit 703a66c5da77016bb3dc97e2742f82826a520a9c[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Wed Apr 9 18:46:49 2025 +0530
+
+    oddo id added.
+
+[33mcommit 2951afbd46406a354df01a19b2bf594b29a33b26[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Wed Apr 9 18:04:45 2025 +0530
+
+    changes pushed
+
+[33mcommit d10858f7d0f9f9b28a7fff2f18b76ef2fcb7c9b1[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Wed Apr 9 12:43:20 2025 +0530
+
+    updated be url.
+
+[33mcommit fc01eca7dc48452a7a1132593e2a832007bc9776[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Tue Apr 8 19:50:21 2025 +0530
+
+    Added message of response
+
+[33mcommit aa354a612c393639aa08b06bcdfc8b7c92d85909[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Tue Apr 8 18:22:30 2025 +0530
+
+    proceed to checkout added
+
+[33mcommit 0364cefbccaef5cc4977e47dd2639b6dd1ec2f64[m
+Merge: c71e3b3 907290d
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Tue Apr 8 18:20:11 2025 +0530
+
+    proceed to checkout added
+
+[33mcommit c71e3b3df51a76273d9f23a1dbf3d85af108ad4e[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Tue Apr 8 18:17:39 2025 +0530
+
+    proceed checkout button added
+
+[33mcommit 907290d6d67f3ecbf4ff237b86e29ee0d3965667[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Wed Apr 2 17:54:00 2025 +0530
+
+    Update ApiService.js
+
+[33mcommit 5f1946ce97669b50df5e6a028e41eeb58612df74[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Wed Apr 2 11:59:29 2025 +0530
+
+    Update ApiService.js
+
+[33mcommit d338d03c89eb5d3ca146644d859875ba8f678eb1[m
+Merge: 620339c 38850c0
+Author: limefresh5455 <limefresh5455@gmail.com>
+Date:   Tue Apr 1 18:05:51 2025 +0530
+
+    Merge branch 'main' of https://github.com/imnishantmehra/Amazon_Automation
+
+[33mcommit 620339c0fbc9b5598128d0b0e7bcf304b5affb2b[m
+Author: limefresh5455 <limefresh5455@gmail.com>
+Date:   Tue Apr 1 17:31:33 2025 +0530
+
+    added buttons
+
+[33mcommit 38850c081fcdd136c3fdc5b67735ac9c69325d63[m
+Author: imnishantmehra <140081121+imnishantmehra@users.noreply.github.com>
+Date:   Tue Apr 1 15:47:43 2025 +0530
+
+    Update ApiService.js
+
+[33mcommit d122d913f89408730050d63611609841bc0116e4[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Wed Mar 26 17:49:03 2025 +0530
+
+    added BE url
+
+[33mcommit 685e06cbed2205e77fdf5b40f82a491eef81a825[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Tue Mar 25 19:33:17 2025 +0530
+
+    api integration
+
+[33mcommit c62a09cb002f833b121dc7280994e0d14a85b960[m
+Author: imnishantmehra <nishantmehra618@gmail.com>
+Date:   Tue Mar 25 16:57:55 2025 +0530
+
+    Initial commit

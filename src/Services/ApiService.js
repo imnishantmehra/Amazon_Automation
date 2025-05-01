@@ -1,6 +1,7 @@
 import axios from "axios";
 
 // const API_BASE_URL = "https://amazon-scrape-backend-899820581573.us-central1.run.app";
+// const API_BASE_URL = "https://23.20.244.135:5000";
 const API_BASE_URL = "https://5728-2405-201-3009-d88a-9e3f-42bb-16ac-d031.ngrok-free.app";
 
 const axiosConfigForFetch = {
@@ -13,8 +14,8 @@ const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         "ngrok-skip-browser-warning": "true",
-    }
-})
+    },
+});
 
 const request = async (method, endpoint, data = null, config = {}) => {
     try {
@@ -85,16 +86,17 @@ const request = async (method, endpoint, data = null, config = {}) => {
 
         throw { status: errorCode, message: errorMessage };
     }
-};
-
+}
 
 export const api = {
     get: (endpoint, config = {}) => request("get", endpoint, null, config),
-    post: (endpoint, data, config = {}) => request("post", endpoint, data, config),
+    post: (endpoint, data, config = {}) =>
+        request("post", endpoint, data, config),
     put: (endpoint, data, config = {}) => request("put", endpoint, data, config),
-    patch: (endpoint, data, config = {}) => request("patch", endpoint, data, config),
+    patch: (endpoint, data, config = {}) =>
+        request("patch", endpoint, data, config),
     delete: (endpoint, config = {}) => request("delete", endpoint, null, config),
-}
+};
 
 //Fetch function for streaming
 export const streamAPIResponse = async (
@@ -106,7 +108,11 @@ export const streamAPIResponse = async (
     try {
         const response = await fetch(`${API_BASE_URL}${url}`, axiosConfigForFetch);
 
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) {
+            return response.json().then((errorData) => {
+                throw new Error(errorData.error || "Something went wrong");
+            });
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -140,7 +146,9 @@ export const streamAPIResponse = async (
                 if (!otpSubmitted.current) {
                     setOtpRequested(false);
                     setMessage("OTP submission timeout. Please re-initiate the process.");
-                    throw new Error("OTP submission timeout. Please re-initiate the process.");
+                    throw new Error(
+                        "OTP submission timeout. Please re-initiate the process."
+                    );
                 }
                 setMessage("OTP Submitted, Resuming automation...");
             } else {
@@ -153,14 +161,19 @@ export const streamAPIResponse = async (
             error.response?.data?.message ||
             error?.message ||
             error.response?.data ||
-            'Unknown streaming error';
+            "Unknown streaming error";
 
         throw new Error(message);
     }
 };
 
 // Calls automation API 5 times
-export const retryAutomation = async (url, setMessage, setOtpRequested, otpSubmitted) => {
+export const retryAutomation = async (
+    url,
+    setMessage,
+    setOtpRequested,
+    otpSubmitted
+) => {
     let attempts = 0;
     while (attempts < 5) {
         try {
@@ -169,22 +182,26 @@ export const retryAutomation = async (url, setMessage, setOtpRequested, otpSubmi
                     ? "Running automation..."
                     : `Automation failed. Retrying ${attempts + 1}...`
             );
-            await streamAPIResponse(
-                url,
-                setMessage,
-                setOtpRequested,
-                otpSubmitted
-            );
-            return { "status": true, "message": "Automation completed." };
+            await streamAPIResponse(url, setMessage, setOtpRequested, otpSubmitted);
+            return { status: true, message: "Automation completed." };
         } catch (error) {
             attempts++;
 
-            if (error.message === "OTP submission timeout. Please re-initiate the process.") {
-                return { "status": false, "message": "OTP submission timeout. Please re-initiate the process." }
+            if (
+                error.message ===
+                "OTP submission timeout. Please re-initiate the process."
+            ) {
+                return {
+                    status: false,
+                    message: "OTP submission timeout. Please re-initiate the process.",
+                };
             }
 
             if (attempts >= 5) {
-                return { "status": false, "message": "Automation failed after 5 attempts." }
+                return {
+                    status: false,
+                    message: "Automation failed after 5 attempts.",
+                };
             }
             await new Promise((resolve) => setTimeout(resolve, 5000));
         }

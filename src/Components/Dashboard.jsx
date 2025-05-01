@@ -177,20 +177,13 @@ const Dashboard = () => {
 
     try {
       const credentialsData = await api.get("/get_credentials");
-
-<<<<<<< HEAD
       if (
         credentialsData.error === "No credentials stored" ||
         credentialsData.message === "No credentials stored"
       ) {
         setMessage("Credentials not found, please enter your credentials");
-=======
-      if (credentialsData.error) {
-        setMessage(credentialsData.error);
->>>>>>> 4762f8632c38c0c174f62702eae528556d809e6f
-        return false;
+        return;
       }
-
       setMessage("Credentials found, please wait...");
       return true;
     } catch (error) {
@@ -390,32 +383,30 @@ const Dashboard = () => {
     const apiUrl = apiPath;
 
     try {
-        const response = await api.get(apiUrl, { responseType: "blob" });
-        console.log(response);
+      const response = await api.get(apiUrl, { responseType: "blob" });
+      console.log(response);
 
-        if (response) {
-            const blob = new Blob([response.data], {
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            });
-            const url = window.URL.createObjectURL(blob);
+      if (response) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
 
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = downloadFileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-        } else {
-          alert(`${type === "output" ? "Output" : "Input"} file not found.`);
-        }
-    } catch (error) {
-        console.error("Error downloading file:", error);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = downloadFileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
         alert(`${type === "output" ? "Output" : "Input"} file not found.`);
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      alert(`${type === "output" ? "Output" : "Input"} file not found.`);
     }
-};
-
+  };
 
   return (
     <>

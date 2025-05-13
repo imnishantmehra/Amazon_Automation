@@ -149,6 +149,7 @@ export const streamAPIResponse = async (
                         "OTP submission timeout. Please re-initiate the process."
                     );
                 }
+                console.log("outside")
                 // setMessage("OTP Submitted, Resuming automation...");
             } else if (chunk.includes("Aborting cart operations due to login failure.")) {
                 // setMessage("Aborting cart operations due to login failure.");

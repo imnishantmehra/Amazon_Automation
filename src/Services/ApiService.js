@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // const API_BASE_URL = "https://amazon-scrape-backend-899820581573.us-central1.run.app";
-const API_BASE_URL = "http://23.20.244.135:5000";
-// const API_BASE_URL = "https://5728-2405-201-3009-d88a-9e3f-42bb-16ac-d031.ngrok-free.app";
+// const API_BASE_URL = "http://23.20.244.135:5000";
+const API_BASE_URL = "https://717e-2405-201-3009-d13a-7ca7-6500-bb86-9674.ngrok-free.app";
 
 const axiosConfigForFetch = {
     headers: {
@@ -137,7 +137,6 @@ export const streamAPIResponse = async (
                     setMessage("Please Enter OTP sent to your device");
                     waitingForOTP = true;
                 }
-
                 while (!otpSubmitted.current && elapsedTime < MAX_WAIT_TIME) {
                     await new Promise((resolve) => setTimeout(resolve, 1000));
                     elapsedTime++;
@@ -145,12 +144,17 @@ export const streamAPIResponse = async (
 
                 if (!otpSubmitted.current) {
                     setOtpRequested(false);
-                    setMessage("OTP submission timeout. Please re-initiate the process.");
+                    // setMessage("OTP submission timeout. Please re-initiate the process.");
                     throw new Error(
                         "OTP submission timeout. Please re-initiate the process."
                     );
                 }
-                setMessage("OTP Submitted, Resuming automation...");
+                // setMessage("OTP Submitted, Resuming automation...");
+            } else if (chunk.includes("Aborting cart operations due to login failure.")) {
+                // setMessage("Aborting cart operations due to login failure.");
+                throw new Error(
+                    "Aborting cart operations due to login failure."
+                );
             } else {
                 setMessage(chunk);
             }
@@ -194,6 +198,16 @@ export const retryAutomation = async (
                 return {
                     status: false,
                     message: "OTP submission timeout. Please re-initiate the process.",
+                };
+            }
+
+            if (
+                error.message ===
+                "Aborting cart operations due to login failure."
+            ) {
+                return {
+                    status: false,
+                    message: "Aborted cart operations due to login failure.",
                 };
             }
 

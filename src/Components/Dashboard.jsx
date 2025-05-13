@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [otp, setOtp] = useState("");
   const [test, setTest] = useState(null);
   const [otpRequested, setOtpRequested] = useState(false);
+  const [runAutomation, setRunAutomation] = useState(false);
   const [activeTab, setActiveTab] = useState("Credentials");
   const [showForm, setShowForm] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -207,7 +208,18 @@ const Dashboard = () => {
       const outputFileUrl = convertBlobToURL(outputResponse);
       setOutputFileUrl(outputFileUrl);
       setMessage("Output file is ready! automation started");
+      handleAutomationAPIs();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setProcessing(false);
+    }
+  };
 
+  const handleAutomationAPIs = async () => {
+    setProcessing(true);
+    setRunAutomation(false);
+    try {
       const automationResponse = await retryAutomation(
         "/automation",
         setMessage,
@@ -228,12 +240,12 @@ const Dashboard = () => {
       const inputFileUrl = convertBlobToURL(inputFileResponse);
       setInputFileUrl(inputFileUrl);
 
-      setMessage(
-        automationResponse.message || "Process completed successfully"
-      );
+      setMessage(automationResponse.message);
 
       if (automationResponse.status) {
         setShowCheckout(true);
+      } else {
+        setRunAutomation(true);
       }
     } catch (error) {
       setMessage(error.message);
@@ -377,6 +389,7 @@ const Dashboard = () => {
       setProcessing(false);
     }
   };
+
   const handleDownload = async (type) => {
     const apiPath = type === "output" ? "/outputfile" : "/inputfile";
     const downloadFileName = type === "output" ? "output.xlsx" : "input.xlsx";
@@ -384,27 +397,35 @@ const Dashboard = () => {
 
     try {
       const response = await api.get(apiUrl, { responseType: "blob" });
-      console.log(response);
 
-      if (response) {
-        const blob = new Blob([response.data], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = downloadFileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } else {
-        alert(`${type === "output" ? "Output" : "Input"} file not found.`);
+      const contentType =
+        response.type || response.headers?.get?.("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const text = await response.text();
+        const json = JSON.parse(text);
+        throw new Error(
+          json?.error || json?.message || "Server error during file download."
+        );
       }
+
+      const blob = new Blob([response], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = downloadFileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading file:", error);
-      alert(`${type === "output" ? "Output" : "Input"} file not found.`);
+      alert(
+        `Error downloading ${type === "output" ? "output" : "input"} file: ${
+          error.message
+        }`
+      );
     }
   };
 
@@ -573,6 +594,16 @@ const Dashboard = () => {
                 >
                   {message}
                 </p>
+              </div>
+            )}
+            {runAutomation && (
+              <div className="mt-5 p-6 flex justify-center items-center">
+                <button
+                  onClick={handleAutomationAPIs}
+                  className="mx-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
+                >
+                  Run Automation
+                </button>
               </div>
             )}
             {otpRequested && (

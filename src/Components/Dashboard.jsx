@@ -30,6 +30,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("Credentials");
   const [showForm, setShowForm] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showAmountForm, setShowAmountForm] = useState(false);
+  const [showAmazonPrompt, setShowAmazonPrompt] = useState(false);
   const [checkoutAmount, setCheckoutAmount] = useState("");
   const otpSubmitted = useRef(false);
 
@@ -322,7 +324,7 @@ const Dashboard = () => {
 
     setProcessing(true);
     try {
-      const checkoutResponse = await api.post("/confirm_checkout", {
+      const checkoutResponse = await api.post("/send_to_odoo", {
         total_paid: checkoutAmount,
       });
       setShowCheckout(false);
@@ -333,6 +335,26 @@ const Dashboard = () => {
       setMessage(error.message);
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleProceedClick = (e) => {
+    e.preventDefault();
+
+    // Open Amazon in a new tab
+    window.open("https://www.amazon.com", "_blank");
+
+    // Show your custom confirmation popup
+    setShowAmazonPrompt(true);
+  };
+
+  const handleAmazonConfirmation = (confirmed) => {
+    setShowAmazonPrompt(false);
+
+    if (confirmed) {
+      setShowAmountForm(true);
+    } else {
+      setShowAmountForm(false);
     }
   };
 
@@ -602,7 +624,7 @@ const Dashboard = () => {
                   onClick={handleAutomationAPIs}
                   className="mx-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
                 >
-                  Run Automation
+                  Re-Initiate Login Process
                 </button>
               </div>
             )}
@@ -628,29 +650,55 @@ const Dashboard = () => {
             {showCheckout && (
               <div className="flex items-center justify-center space-x-2 mt-5">
                 <div className="flex flex-col items-center justify-center">
-                  <a
-                    href="https://www.amazon.com"
+                  <button
+                    onClick={handleProceedClick}
                     className="my-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
-                    target="_blank"
-                    rel="noopener noreferrer"
                   >
                     Proceed to Checkout
-                  </a>
-                  {/*                   <div className="flex flex-col items-center justify-center text-center">
-                    <input
-                      type="text"
-                      placeholder="Enter the checkout amount"
-                      value={checkoutAmount}
-                      onChange={(e) => setCheckoutAmount(e.target.value)}
-                      className="w-full p-2 mb-2 border rounded"
-                    />
-                    <button
-                      onClick={handleCheckoutAmount}
-                      className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
-                    >
-                      Submit Amount
-                    </button>
-                  </div> */}
+                  </button>
+
+                  {/* Custom Modal Prompt */}
+                  {showAmazonPrompt && (
+                    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white p-6 rounded shadow-lg text-center">
+                        <p className="mb-4">
+                          Have you completed the payment on Amazon?
+                        </p>
+                        <div className="flex justify-center space-x-4">
+                          <button
+                            onClick={() => handleAmazonConfirmation(true)}
+                            className="bg-green-600 text-white px-4 py-2 rounded"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => handleAmazonConfirmation(false)}
+                            className="bg-red-600 text-white px-4 py-2 rounded"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {showAmountForm && (
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <input
+                        type="text"
+                        placeholder="Enter the amount"
+                        value={checkoutAmount}
+                        onChange={(e) => setCheckoutAmount(e.target.value)}
+                        className="w-full p-2 mb-2 border rounded"
+                      />
+                      <button
+                        onClick={handleCheckoutAmount}
+                        className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
+                      >
+                        Send to odoo
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

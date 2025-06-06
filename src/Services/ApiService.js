@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // const API_BASE_URL = "https://amazon-scrape-backend-899820581573.us-central1.run.app";
-// const API_BASE_URL = "http://23.20.244.135:5000";
-const API_BASE_URL = "https://717e-2405-201-3009-d13a-7ca7-6500-bb86-9674.ngrok-free.app";
+const API_BASE_URL = "http://23.20.244.135:5000";
+// const API_BASE_URL = "https://717e-2405-201-3009-d13a-7ca7-6500-bb86-9674.ngrok-free.app";
 
 const axiosConfigForFetch = {
     headers: {
@@ -149,7 +149,6 @@ export const streamAPIResponse = async (
                         "OTP submission timeout. Please re-initiate the process."
                     );
                 }
-                console.log("outside")
                 // setMessage("OTP Submitted, Resuming automation...");
             } else if (chunk.includes("Aborting cart operations due to login failure.")) {
                 // setMessage("Aborting cart operations due to login failure.");

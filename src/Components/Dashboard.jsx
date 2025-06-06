@@ -98,7 +98,6 @@ const Dashboard = () => {
         });
       }
     } catch (error) {
-      setMessage(error.message);
       setCredentialMessages(error.message);
     }
   };

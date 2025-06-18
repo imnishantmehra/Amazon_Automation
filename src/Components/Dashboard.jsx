@@ -328,7 +328,7 @@ const Dashboard = () => {
       });
       setShowCheckout(false);
       setMessage(
-        `${checkoutResponse.message} with the odoo order id: ${checkoutResponse.odoo_order_id}`
+        `${checkoutResponse.message} with the odoo order id: ${checkoutResponse.odoo_purchase_order_id}`
       );
     } catch (error) {
       setMessage(error.message);

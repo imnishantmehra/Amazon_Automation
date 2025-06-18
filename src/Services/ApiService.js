@@ -157,6 +157,9 @@ export const streamAPIResponse = async (
                 );
             } else {
                 setMessage(chunk);
+                if (chunk.includes("Automation completed with Total cart amount")) {
+                    return { lastMessage: chunk }
+                }
             }
         }
     } catch (error) {
@@ -186,8 +189,8 @@ export const retryAutomation = async (
                     ? "Running automation..."
                     : `Automation failed. Retrying ${attempts + 1}...`
             );
-            await streamAPIResponse(url, setMessage, setOtpRequested, otpSubmitted);
-            return { status: true, message: "Automation completed." };
+            const response = await streamAPIResponse(url, setMessage, setOtpRequested, otpSubmitted);
+            return { status: true, message: response.lastMessage || "Automation completed." };
         } catch (error) {
             attempts++;
 

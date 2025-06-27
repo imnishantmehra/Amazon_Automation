@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [showAmountForm, setShowAmountForm] = useState(false);
   const [showAmazonPrompt, setShowAmazonPrompt] = useState(false);
   const [showAutomationPrompt, setShowAutomationPrompt] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState(false);
   const [checkoutAmount, setCheckoutAmount] = useState("");
   const otpSubmitted = useRef(false);
 
@@ -324,6 +325,7 @@ const Dashboard = () => {
     }
 
     setProcessing(true);
+    setRefreshMessage(true);
     try {
       const checkoutResponse = await api.post("/send_to_odoo", {
         total_paid: checkoutAmount,
@@ -458,6 +460,18 @@ const Dashboard = () => {
         {/* Header */}
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
+        {refreshMessage && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded shadow-lg z-50 flex items-center justify-between min-w-[300px]">
+            <span>Kindly refresh the tab to reuse the app.</span>
+            <button
+              className="ml-4 text-white font-bold"
+              onClick={() => setRefreshMessage(false)}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <div className="flex border-b bg-gray-200 rounded-lg overflow-hidden">
           {["Credentials", "File Upload", "Logs"].map((tab) => (
@@ -575,6 +589,30 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
+
+            {showAutomationPrompt && (
+              <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded shadow-lg text-center">
+                  <p className="mb-4">
+                    Do you want to run the automation for the uploaded file?
+                  </p>
+                  <div className="flex justify-center space-x-4">
+                    <button
+                      onClick={() => handleFileUpload(uploadedFile)}
+                      className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => setShowAutomationPrompt(false)}
+                      className="bg-red-600 text-white px-4 py-2 rounded"
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -674,31 +712,6 @@ const Dashboard = () => {
                           </button>
                           <button
                             onClick={() => handleAmazonConfirmation(false)}
-                            className="bg-red-600 text-white px-4 py-2 rounded"
-                          >
-                            No
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {showAutomationPrompt && (
-                    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-                      <div className="bg-white p-6 rounded shadow-lg text-center">
-                        <p className="mb-4">
-                          Do you want to run the automation for the uploaded
-                          file?
-                        </p>
-                        <div className="flex justify-center space-x-4">
-                          <button
-                            onClick={() => handleFileUpload(uploadedFile)}
-                            className="bg-green-600 text-white px-4 py-2 rounded"
-                          >
-                            Yes
-                          </button>
-                          <button
-                            onClick={() => setShowAutomationPrompt(false)}
                             className="bg-red-600 text-white px-4 py-2 rounded"
                           >
                             No

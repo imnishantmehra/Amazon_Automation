@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://0ffc-2405-201-3009-d013-edb0-f1b1-c933-e35e.ngrok-free.app";
+const API_BASE_URL = "https://59d8-2405-201-3009-d013-3c74-f02c-d247-7fe4.ngrok-free.app";
 // const API_BASE_URL = "http://23.20.244.135:5000";
 // const API_BASE_URL = "https://717e-2405-201-3009-d13a-7ca7-6500-bb86-9674.ngrok-free.app";
 

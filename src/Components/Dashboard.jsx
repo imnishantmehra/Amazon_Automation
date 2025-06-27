@@ -24,7 +24,7 @@ const Dashboard = () => {
     email: "",
   });
   const [otp, setOtp] = useState("");
-  const [test, setTest] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [otpRequested, setOtpRequested] = useState(false);
   const [runAutomation, setRunAutomation] = useState(false);
   const [activeTab, setActiveTab] = useState("Credentials");
@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showAmountForm, setShowAmountForm] = useState(false);
   const [showAmazonPrompt, setShowAmazonPrompt] = useState(false);
+  const [showAutomationPrompt, setShowAutomationPrompt] = useState(false);
   const [checkoutAmount, setCheckoutAmount] = useState("");
   const otpSubmitted = useRef(false);
 
@@ -129,15 +130,16 @@ const Dashboard = () => {
     handleFileUpload(file);
   };
 
-  const handleFileUpload = async (uploadedfile) => {
+  const handleFileUpload = async (inputFile) => {
     let file;
-    setTest(uploadedfile);
-    if (uploadedfile.target) {
+    setUploadedFile(inputFile);
+    setShowAutomationPrompt(false);
+    if (inputFile.target) {
       // get file when uploaded through an input
-      file = uploadedfile.target.files[0];
+      file = inputFile.target.files[0];
     } else {
       // get file when using drag-and-drop file
-      file = uploadedfile;
+      file = inputFile;
     }
 
     if (!file) {
@@ -274,8 +276,8 @@ const Dashboard = () => {
         email: amazonCredentials.email,
       });
       setCredentialMessages("Credentials saved successfully");
-      if (test) {
-        handleFileUpload(test);
+      if (uploadedFile) {
+        setShowAutomationPrompt(true);
       }
     } catch (error) {
       setCredentialMessages(error.message);
@@ -681,6 +683,31 @@ const Dashboard = () => {
                     </div>
                   )}
 
+                  {showAutomationPrompt && (
+                    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white p-6 rounded shadow-lg text-center">
+                        <p className="mb-4">
+                          Do you want to run the automation for the uploaded
+                          file?
+                        </p>
+                        <div className="flex justify-center space-x-4">
+                          <button
+                            onClick={() => handleFileUpload(uploadedFile)}
+                            className="bg-green-600 text-white px-4 py-2 rounded"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => setShowAutomationPrompt(false)}
+                            className="bg-red-600 text-white px-4 py-2 rounded"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {showAmountForm && (
                     <div className="flex flex-col items-center justify-center text-center">
                       <input
@@ -694,7 +721,7 @@ const Dashboard = () => {
                         onClick={handleCheckoutAmount}
                         className="mt-4 bg-black text-white px-4 py-2 rounded-md w-full flex justify-center items-center"
                       >
-                        Send to odoo
+                        {processing ? "Sending..." : "Send to odoo"}
                       </button>
                     </div>
                   )}
